@@ -1,0 +1,83 @@
+📋 COPY THIS INTO V0 WHEN BUILDING COMPONENTS:
+
+---
+
+Build a [COMPONENT DESCRIPTION] for DemoDrop using:
+
+TECH STACK:
+- Next.js 14 App Router + TypeScript
+- React 18
+- Clerk authentication (@clerk/nextjs)
+- Tailwind CSS v3 with theme variables
+- shadcn/ui components (Button, Card, Input, Badge, Select, Label, Textarea)
+- lucide-react icons
+- date-fns for dates
+
+AUTHENTICATION (Clerk):
+```typescript
+'use client'
+import { useUser, SignInButton, UserButton } from '@clerk/nextjs'
+
+const { isLoaded, isSignedIn, user } = useUser()
+
+if (!isLoaded) return <div>Loading...</div>
+if (!isSignedIn) return <SignInButton mode="modal"><Button>Sign In</Button></SignInButton>
+```
+
+API ENDPOINTS:
+- POST /api/generate-video - Generate video { websiteUrl, stylePreset, customInstructions? }
+- GET /api/projects/:id - Get video status
+- GET /api/videos - List all user videos (supports ?status= and ?search= params)
+- DELETE /api/video/:id/delete - Delete video
+- POST /api/stripe/checkout - Create checkout { planType: 'pro' | 'enterprise' }
+
+TYPESCRIPT TYPES:
+```typescript
+interface Project {
+  id: string
+  websiteUrl: string
+  stylePreset: 'product-demo' | 'enterprise-saas' | 'startup-energy' | 'brand-story'
+  status: "scraping" | "generating" | "completed" | "failed"
+  progress?: number
+  videoUrl?: string
+  error?: string
+  createdAt: number
+  completedAt?: number
+}
+
+interface User {
+  id: string
+  email: string
+  planType: 'free' | 'pro' | 'enterprise'
+  videosUsed: number
+  videosLimit: number
+}
+
+const PLAN_LIMITS = { free: 1, pro: 999999, enterprise: 999999 }
+```
+
+STYLING (Tailwind):
+- Colors: bg-background, bg-card, bg-muted, text-foreground, text-muted-foreground, border-border
+- Status badges: bg-blue-100 text-blue-800 (scraping), bg-yellow-100 text-yellow-800 (generating), bg-green-100 text-green-800 (completed), bg-red-100 text-red-800 (failed)
+- Spacing: py-20 px-4 sm:px-6 lg:px-8
+- Max width: max-w-7xl mx-auto
+- Responsive grid: grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6
+
+PATTERNS:
+- Client components: 'use client' at top
+- Navigation: import Link from 'next/link', use <Link href="/path">
+- Routing: import { useRouter } from 'next/navigation'
+- Dates: formatDistanceToNow(new Date(timestamp), { addSuffix: true })
+- Forms: useState for loading/error, async handleSubmit, fetch with try/catch
+
+COMPONENT STRUCTURE:
+- Always handle auth state (loading, signed out, signed in)
+- Always handle API states (loading, error, success)
+- Always make responsive (mobile-first)
+- Use shadcn/ui components only
+- Use Tailwind theme variables (no hardcoded colors)
+
+REQUIREMENTS:
+[DESCRIBE YOUR SPECIFIC COMPONENT NEEDS HERE]
+
+Make it clean, professional, responsive, and follow Next.js 14 App Router best practices.
