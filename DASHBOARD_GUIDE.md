@@ -63,10 +63,10 @@ The dashboard provides a complete video management interface where users can:
 **Security:** Requires authentication, returns only user's videos
 
 **Example:**
-```javascript
+\`\`\`javascript
 const response = await fetch('/api/videos?status=completed&search=example.com');
 const { videos } = await response.json();
-```
+\`\`\`
 
 #### GET `/api/video/[id]`
 **Purpose:** Get single video details
@@ -77,10 +77,10 @@ const { videos } = await response.json();
 - Returns 403 if not owner
 
 **Example:**
-```javascript
+\`\`\`javascript
 const response = await fetch('/api/video/abc123');
 const { video } = await response.json();
-```
+\`\`\`
 
 #### DELETE `/api/video/[id]/delete`
 **Purpose:** Delete video and associated blob
@@ -91,9 +91,9 @@ const { video } = await response.json();
 - Deletes from both database and blob storage
 
 **Example:**
-```javascript
+\`\`\`javascript
 await fetch('/api/video/abc123/delete', { method: 'DELETE' });
-```
+\`\`\`
 
 ---
 
@@ -141,7 +141,7 @@ Wrapper around `@remotion/player` with:
 - Click-to-play
 
 **Configuration:**
-```typescript
+\`\`\`typescript
 <Player
   component={VideoComposition}
   inputProps={{ videoUrl }}
@@ -152,7 +152,7 @@ Wrapper around `@remotion/player` with:
   controls
   clickToPlay
 />
-```
+\`\`\`
 
 #### `VideoActions`
 **Location:** `components/video/video-actions.tsx`
@@ -171,11 +171,11 @@ Action buttons for video detail page:
 **Location:** `remotion/VideoComposition.tsx`
 
 Simple composition that renders a video:
-```typescript
+\`\`\`typescript
 <AbsoluteFill>
   <Video src={videoUrl} />
 </AbsoluteFill>
-```
+\`\`\`
 
 #### `Root`
 **Location:** `remotion/Root.tsx`
@@ -189,10 +189,10 @@ Defines available compositions:
 
 **Location:** `remotion.config.ts`
 
-```typescript
+\`\`\`typescript
 Config.setVideoImageFormat('jpeg');
 Config.setOverwriteOutput(true);
-```
+\`\`\`
 
 ---
 
@@ -243,7 +243,7 @@ When videos are in `scraping` or `generating` status:
 - Stops polling when completed/failed
 
 **Implementation:**
-```typescript
+\`\`\`typescript
 useEffect(() => {
   if (video && (video.status === 'scraping' || video.status === 'generating')) {
     const interval = setInterval(() => {
@@ -252,7 +252,7 @@ useEffect(() => {
     return () => clearInterval(interval);
   }
 }, [video?.status]);
-```
+\`\`\`
 
 ---
 
@@ -268,11 +268,11 @@ All dashboard and video routes are protected by Clerk middleware:
 ### Ownership Verification
 
 API routes check ownership:
-```typescript
+\`\`\`typescript
 if (project.user_id !== userId) {
   return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
 }
-```
+\`\`\`
 
 ### Blob Deletion
 
@@ -295,12 +295,12 @@ When deleting videos:
 
 ### Status Colors
 
-```css
+\`\`\`css
 scraping: bg-blue-100 text-blue-800
 generating: bg-yellow-100 text-yellow-800
 completed: bg-green-100 text-green-800
 failed: bg-red-100 text-red-800
-```
+\`\`\`
 
 ### Responsive Breakpoints
 
@@ -348,22 +348,22 @@ failed: bg-red-100 text-red-800
 
 ## NPM Scripts
 
-```json
+\`\`\`json
 {
   "dev": "next dev",           // Start dev server
   "build": "next build",       // Build for production
   "remotion": "remotion studio", // Open Remotion Studio
   "render": "remotion render"  // Render video (CLI)
 }
-```
+\`\`\`
 
 ### Remotion Studio
 
 To open Remotion Studio for composition preview:
 
-```bash
+\`\`\`bash
 npm run remotion
-```
+\`\`\`
 
 Opens at `http://localhost:3000` with visual editor.
 
@@ -371,7 +371,7 @@ Opens at `http://localhost:3000` with visual editor.
 
 ## File Structure
 
-```
+\`\`\`
 app/
 ├── dashboard/
 │   └── page.tsx                    # Dashboard page
@@ -400,7 +400,7 @@ remotion/
 ├── Root.tsx                       # Compositions
 ├── VideoComposition.tsx           # Main composition
 └── remotion.config.ts             # Config
-```
+\`\`\`
 
 ---
 

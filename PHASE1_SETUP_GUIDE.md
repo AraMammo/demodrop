@@ -12,7 +12,7 @@ Go to **Vercel Dashboard → Your Project → Storage → Postgres → Query**
 
 Copy and run the SQL from `database-migrations.sql`:
 
-```sql
+\`\`\`sql
 -- Create users table for subscription and quota tracking
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_stripe_customer ON users(stripe_customer_id);
-```
+\`\`\`
 
 ---
 
@@ -50,10 +50,10 @@ CREATE INDEX idx_users_stripe_customer ON users(stripe_customer_id);
 
 **Vercel Dashboard → Settings → Environment Variables:**
 
-```env
+\`\`\`env
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 CLERK_SECRET_KEY=sk_test_...
-```
+\`\`\`
 
 ### Step 4: Configure Clerk Settings (Optional but Recommended)
 
@@ -88,10 +88,10 @@ In Clerk Dashboard:
 
 **Vercel Dashboard → Settings → Environment Variables:**
 
-```env
+\`\`\`env
 STRIPE_SECRET_KEY=sk_test_...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
-```
+\`\`\`
 
 ### Step 4: Create Webhook Endpoint
 
@@ -110,9 +110,9 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 
 **Vercel Dashboard → Settings → Environment Variables:**
 
-```env
+\`\`\`env
 STRIPE_WEBHOOK_SECRET=whsec_...
-```
+\`\`\`
 
 ---
 
@@ -120,7 +120,7 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 
 Here's the complete list of environment variables needed:
 
-```env
+\`\`\`env
 # OpenAI (from previous setup)
 OPENAI_API_KEY=sk-proj-...
 
@@ -139,7 +139,7 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 # Vercel Postgres & Blob (auto-configured by Vercel)
 POSTGRES_URL=...
 BLOB_READ_WRITE_TOKEN=...
-```
+\`\`\`
 
 ---
 
@@ -177,7 +177,7 @@ BLOB_READ_WRITE_TOKEN=...
 
 For local testing, use Stripe CLI:
 
-```bash
+\`\`\`bash
 # Install Stripe CLI
 brew install stripe/stripe-cli/stripe
 
@@ -189,20 +189,20 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 
 # This will give you a webhook secret starting with whsec_
 # Add it to your .env.local
-```
+\`\`\`
 
 ---
 
 ## 6. Monitoring & Verification
 
 ### Check Database
-```sql
+\`\`\`sql
 -- View all users
 SELECT id, email, plan_type, videos_used, videos_limit FROM users;
 
 -- View subscription status
 SELECT id, email, plan_type, subscription_status, stripe_customer_id FROM users;
-```
+\`\`\`
 
 ### Check Stripe Dashboard
 - **Payments**: See all test payments
