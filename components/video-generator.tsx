@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { useUser, SignInButton } from "@clerk/nextjs"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -193,21 +194,41 @@ export function VideoGenerator() {
 
         {isSignedIn && state.status === "error" && (
           <Card className="mb-6 p-4 bg-destructive/10 border-destructive">
-            <p className="text-sm text-destructive font-medium">{state.error}</p>
+            <p className="text-sm text-destructive font-medium mb-3">{state.error}</p>
+            <div className="flex gap-2">
+              {state.error?.includes('quota') || state.error?.includes('limit') ? (
+                <Button asChild size="sm" variant="outline">
+                  <Link href="/#pricing">Upgrade to Pro</Link>
+                </Button>
+              ) : null}
+              <Button asChild size="sm" variant="outline">
+                <Link href="/dashboard">View Dashboard</Link>
+              </Button>
+            </div>
           </Card>
         )}
 
         {isSignedIn && state.status === "complete" && state.videoUrl ? (
           <div className="space-y-6">
+            <Card className="p-4 bg-green-50 border-green-200 mb-4">
+              <p className="text-green-800 text-sm font-medium text-center">
+                ✓ Video generated successfully! View all your videos in the dashboard.
+              </p>
+            </Card>
             <Card className="p-6 bg-card">
               <video src={state.videoUrl} controls className="w-full rounded-lg" />
             </Card>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button onClick={handleDownload} className="flex-1">
-                Download Video
-              </Button>
-              <Button onClick={handleReset} variant="outline" className="flex-1 bg-transparent">
-                Generate Another
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button onClick={handleDownload} className="flex-1">
+                  Download Video
+                </Button>
+                <Button asChild variant="outline" className="flex-1">
+                  <Link href="/dashboard">View Dashboard</Link>
+                </Button>
+              </div>
+              <Button onClick={handleReset} variant="ghost" className="w-full">
+                Generate Another Video
               </Button>
             </div>
           </div>
