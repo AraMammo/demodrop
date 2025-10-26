@@ -123,17 +123,18 @@ export async function createUser(user: {
   id: string
   email: string
   planType?: "free" | "pro" | "enterprise"
-}) {
+}): Promise<User> {
   // User creation is handled by Supabase auth
   // This function is kept for compatibility
+  const planType = user.planType || "free"
   return {
     id: user.id,
     email: user.email,
-    plan_type: user.planType || "free",
-    videos_used: 0,
-    videos_limit: PLAN_LIMITS[user.planType || "free"],
-    created_at: Date.now(),
-    updated_at: Date.now(),
+    planType,
+    videosUsed: 0,
+    videosLimit: PLAN_LIMITS[planType],
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
   }
 }
 
