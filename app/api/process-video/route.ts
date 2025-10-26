@@ -21,8 +21,11 @@ function getOpenAI() {
 export const maxDuration = 300;
 
 export async function POST(req: NextRequest) {
+  let projectId: string | undefined;
   try {
-    const { projectId, websiteUrl, stylePreset, customInstructions } = await req.json();
+    const body = await req.json();
+    projectId = body.projectId;
+    const { websiteUrl, stylePreset, customInstructions } = body;
 
     // Phase 1: Scrape website
     await updateProject(projectId, { status: 'scraping', progress: 10 });
@@ -114,6 +117,19 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error('Process video error:', error);
+
+    // Try to update project status to failed if we have projectId
+    if (projectId) {
+      try {
+        await updateProject(projectId, {
+          status: 'failed',
+          error: error instanceof Error ? error.message : 'Processing failed',
+        });
+      } catch (updateError) {
+        console.error('Failed to update project status:', updateError);
+      }
+    }
+
     return NextResponse.json(
       { error: 'Processing failed' },
       { status: 500 }

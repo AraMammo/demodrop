@@ -3,6 +3,8 @@ interface WebsiteData {
   heroText: string;
   features: string[];
   metaDescription?: string;
+  industry: string;
+  targetAudience: string;
 }
 
 interface StylePreset {

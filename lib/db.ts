@@ -6,7 +6,7 @@ export interface Project {
   websiteUrl: string
   stylePreset: string
   customInstructions?: string
-  status: "scraping" | "orchestrating" | "generating" | "completed" | "failed"
+  status: "scraping" | "generating" | "completed" | "failed"
   progress?: number
   prompt?: string
   soraJobId?: string

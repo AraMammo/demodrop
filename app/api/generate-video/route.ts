@@ -35,8 +35,12 @@ export async function POST(req: NextRequest) {
       createdAt: Date.now(),
     });
 
-    const processUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/process-video`;
-    
+    // Trigger async processing (fire-and-forget)
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ||
+                    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` :
+                    'http://localhost:3000';
+    const processUrl = `${baseUrl}/api/process-video`;
+
     fetch(processUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
