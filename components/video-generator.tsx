@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { createClient } from "@/lib/supabase/client"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -76,6 +76,8 @@ export function VideoGenerator() {
   const [user, setUser] = useState<User | null>(null)
   const supabase = createClient()
 
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user)
@@ -91,12 +93,21 @@ export function VideoGenerator() {
   }, [supabase.auth])
 
   useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+        pollingIntervalRef.current = null
+      }
+    }
+  }, [])
+
+  useEffect(() => {
     if (state.status === "generating") {
       const interval = setInterval(() => {
         setDisplayProgress((prev) => {
           const diff = state.progress - prev
           if (Math.abs(diff) < 0.1) return state.progress
-          return prev + diff * 0.1 // Smooth interpolation
+          return prev + diff * 0.1
         })
       }, 50)
       return () => clearInterval(interval)
@@ -108,7 +119,15 @@ export function VideoGenerator() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Reset state
+    if (state.status === "generating") {
+      return
+    }
+
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current)
+      pollingIntervalRef.current = null
+    }
+
     setState({
       status: "generating",
       progress: 0,
@@ -119,7 +138,6 @@ export function VideoGenerator() {
     })
 
     try {
-      // Submit to API
       const response = await fetch("/api/generate-video", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -133,12 +151,10 @@ export function VideoGenerator() {
       if (!response.ok) {
         const errorData = await response.json()
 
-        // Handle quota exceeded
         if (response.status === 403 && errorData.error === "Quota exceeded") {
           throw new Error(errorData.message || "You've reached your video limit. Please upgrade to continue.")
         }
 
-        // Handle unauthorized
         if (response.status === 401) {
           throw new Error("Please sign in to generate videos")
         }
@@ -149,7 +165,6 @@ export function VideoGenerator() {
       const { projectId } = await response.json()
       setState((prev) => ({ ...prev, projectId, statusMessage: "Analyzing website...", progress: 10 }))
 
-      // Poll for status
       pollStatus(projectId)
     } catch (error) {
       setState({
@@ -164,7 +179,12 @@ export function VideoGenerator() {
   }
 
   const pollStatus = async (projectId: string) => {
-    const pollInterval = setInterval(async () => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current)
+      pollingIntervalRef.current = null
+    }
+
+    pollingIntervalRef.current = setInterval(async () => {
       try {
         const response = await fetch(`/api/projects/${projectId}`)
         if (!response.ok) {
@@ -174,7 +194,10 @@ export function VideoGenerator() {
         const data = await response.json()
 
         if (data.status === "completed") {
-          clearInterval(pollInterval)
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current)
+            pollingIntervalRef.current = null
+          }
           setState({
             status: "complete",
             progress: 100,
@@ -184,7 +207,10 @@ export function VideoGenerator() {
             projectId,
           })
         } else if (data.status === "failed") {
-          clearInterval(pollInterval)
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current)
+            pollingIntervalRef.current = null
+          }
           setState({
             status: "error",
             progress: 0,
@@ -194,7 +220,6 @@ export function VideoGenerator() {
             projectId: null,
           })
         } else {
-          // Update progress
           const progress = data.progress || 50
           const statusMessage = getStatusMessage(progress)
           setState((prev) => ({
@@ -204,7 +229,10 @@ export function VideoGenerator() {
           }))
         }
       } catch (error) {
-        clearInterval(pollInterval)
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current)
+          pollingIntervalRef.current = null
+        }
         setState({
           status: "error",
           progress: 0,
@@ -214,7 +242,7 @@ export function VideoGenerator() {
           projectId: null,
         })
       }
-    }, 2000) // Poll every 2 seconds
+    }, 2000)
   }
 
   const getStatusMessage = (progress: number): string => {
@@ -245,6 +273,11 @@ export function VideoGenerator() {
   }
 
   const handleReset = () => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current)
+      pollingIntervalRef.current = null
+    }
+
     setState({
       status: "idle",
       progress: 0,
@@ -374,11 +407,9 @@ export function VideoGenerator() {
 
               {state.status === "generating" && (
                 <div className="space-y-4 p-4 rounded-lg bg-muted/50 border border-border">
-                  {/* Phase information */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        {/* Pulsing indicator */}
                         <div className="relative flex h-3 w-3">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-foreground opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-3 w-3 bg-foreground"></span>
@@ -392,14 +423,12 @@ export function VideoGenerator() {
                     <p className="text-xs text-muted-foreground pl-5">{getCurrentPhase(state.progress).description}</p>
                   </div>
 
-                  {/* Progress bar */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">{state.statusMessage}</span>
                       <span className="font-medium text-foreground">{Math.round(displayProgress)}%</span>
                     </div>
                     <div className="h-2 w-full overflow-hidden rounded-full bg-secondary relative">
-                      {/* Animated shimmer effect */}
                       <div
                         className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"
                         style={{
@@ -411,13 +440,11 @@ export function VideoGenerator() {
                         className="h-full bg-foreground transition-all duration-300 ease-out relative"
                         style={{ width: `${displayProgress}%` }}
                       >
-                        {/* Glow effect on progress bar */}
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse" />
                       </div>
                     </div>
                   </div>
 
-                  {/* Phase timeline */}
                   <div className="flex items-center justify-between text-xs text-muted-foreground pt-2">
                     <span className={state.progress >= 10 ? "text-foreground font-medium" : ""}>Analyze</span>
                     <span className={state.progress >= 30 ? "text-foreground font-medium" : ""}>Enhance</span>
