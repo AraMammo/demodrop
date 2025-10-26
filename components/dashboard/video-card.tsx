@@ -61,9 +61,9 @@ export function VideoCard({ video, onDelete }: VideoCardProps) {
           <span className="text-xs text-gray-500">{formatDate(video.createdAt)}</span>
         </div>
 
-        <h3 className="font-medium text-gray-900 mb-1 truncate text-sm">{video.websiteUrl}</h3>
+        <h3 className="font-medium text-gray-900 mb-1 truncate text-sm">{video.websiteUrl || "Untitled"}</h3>
 
-        <p className="text-xs text-gray-600 mb-4">Style: {video.stylePreset.replace(/-/g, " ")}</p>
+        <p className="text-xs text-gray-600 mb-4">Style: {video.stylePreset?.replace(/-/g, " ") || "default"}</p>
 
         <div className="flex gap-2">
           <Button asChild size="sm" className="flex-1">
