@@ -68,6 +68,7 @@ export default function DashboardPage() {
     }
   }, [user, filter, search])
 
+  // Fetch videos when filters change
   useEffect(() => {
     if (isLoaded && user) {
       const timeoutId = setTimeout(() => {
@@ -76,8 +77,10 @@ export default function DashboardPage() {
 
       return () => clearTimeout(timeoutId)
     }
-  }, [isLoaded, user, filter, search, fetchVideos])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded, user, filter, search])
 
+  // Poll only when there are processing videos
   useEffect(() => {
     if (!user || !videos.length) return
 
@@ -90,7 +93,8 @@ export default function DashboardPage() {
     }, 5000) // Poll every 5 seconds only when there are processing videos
 
     return () => clearInterval(intervalId)
-  }, [user, videos, fetchVideos])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, videos])
 
   const handleDelete = async (videoId: string) => {
     if (!confirm("Delete this video? This action cannot be undone.")) return
