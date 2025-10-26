@@ -2,8 +2,8 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { useUser, SignInButton } from "@clerk/nextjs"
+import { useState, useEffect } from "react"
+import { createClient } from "@/lib/supabase/client"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card } from "@/components/ui/card"
+import type { User } from "@supabase/supabase-js"
 
 type GenerationStatus = "idle" | "generating" | "complete" | "error"
 
@@ -24,7 +25,6 @@ interface GenerationState {
 }
 
 export function VideoGenerator() {
-  const { isSignedIn, user } = useUser()
   const [websiteUrl, setWebsiteUrl] = useState("")
   const [stylePreset, setStylePreset] = useState("product-demo")
   const [customInstructions, setCustomInstructions] = useState("")
@@ -36,6 +36,23 @@ export function VideoGenerator() {
     error: null,
     projectId: null,
   })
+
+  const [user, setUser] = useState<User | null>(null)
+  const supabase = createClient()
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user)
+    })
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [supabase.auth])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -66,7 +83,7 @@ export function VideoGenerator() {
         const errorData = await response.json()
 
         // Handle quota exceeded
-        if (response.status === 403 && errorData.error === 'Quota exceeded') {
+        if (response.status === 403 && errorData.error === "Quota exceeded") {
           throw new Error(errorData.message || "You've reached your video limit. Please upgrade to continue.")
         }
 
@@ -182,21 +199,21 @@ export function VideoGenerator() {
       <div className="mx-auto max-w-3xl">
         <h2 className="text-3xl sm:text-4xl font-bold text-center text-foreground mb-12">Generate Your Demo Video</h2>
 
-        {!isSignedIn && (
+        {!user && (
           <Card className="p-8 bg-card text-center">
             <h3 className="text-xl font-semibold mb-4">Sign in to generate videos</h3>
             <p className="text-muted-foreground mb-6">Create your free account to start generating demo videos</p>
-            <SignInButton mode="modal">
-              <Button size="lg">Sign In / Sign Up</Button>
-            </SignInButton>
+            <Button asChild size="lg">
+              <Link href="/auth/login">Sign In / Sign Up</Link>
+            </Button>
           </Card>
         )}
 
-        {isSignedIn && state.status === "error" && (
+        {user && state.status === "error" && (
           <Card className="mb-6 p-4 bg-destructive/10 border-destructive">
             <p className="text-sm text-destructive font-medium mb-3">{state.error}</p>
             <div className="flex gap-2">
-              {state.error?.includes('quota') || state.error?.includes('limit') ? (
+              {state.error?.includes("quota") || state.error?.includes("limit") ? (
                 <Button asChild size="sm" variant="outline">
                   <Link href="/#pricing">Upgrade to Pro</Link>
                 </Button>
@@ -208,7 +225,7 @@ export function VideoGenerator() {
           </Card>
         )}
 
-        {isSignedIn && state.status === "complete" && state.videoUrl ? (
+        {user && state.status === "complete" && state.videoUrl ? (
           <div className="space-y-6">
             <Card className="p-4 bg-green-50 border-green-200 mb-4">
               <p className="text-green-800 text-sm font-medium text-center">
@@ -223,7 +240,7 @@ export function VideoGenerator() {
                 <Button onClick={handleDownload} className="flex-1">
                   Download Video
                 </Button>
-                <Button asChild variant="outline" className="flex-1">
+                <Button asChild variant="outline" className="flex-1 bg-transparent">
                   <Link href="/dashboard">View Dashboard</Link>
                 </Button>
               </div>
@@ -232,7 +249,7 @@ export function VideoGenerator() {
               </Button>
             </div>
           </div>
-        ) : isSignedIn ? (
+        ) : user ? (
           <Card className="p-6 sm:p-8 bg-card">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">

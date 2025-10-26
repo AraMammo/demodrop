@@ -1,10 +1,12 @@
 "use client"
 
-import { useState } from "react"
-import { useUser, SignInButton } from "@clerk/nextjs"
+import { useState, useEffect } from "react"
+import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Check } from "lucide-react"
+import Link from "next/link"
+import type { User } from "@supabase/supabase-js"
 
 const plans = [
   {
@@ -37,17 +39,31 @@ const plans = [
 ]
 
 export function Pricing() {
-  const { isSignedIn } = useUser()
+  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState<string | null>(null)
+  const supabase = createClient()
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user)
+    })
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [supabase.auth])
 
   const handlePlanClick = async (planName: string) => {
-    if (!isSignedIn) {
-      // Will be handled by SignInButton wrapper
+    if (!user) {
+      window.location.href = "/auth/login"
       return
     }
 
     if (planName === "Free Trial") {
-      // Scroll to generator
       document.getElementById("generator")?.scrollIntoView({ behavior: "smooth" })
       return
     }
@@ -103,7 +119,7 @@ export function Pricing() {
                     </li>
                   ))}
                 </ul>
-                {isSignedIn ? (
+                {user ? (
                   <Button
                     variant={plan.variant}
                     className="w-full h-12 text-base"
@@ -113,11 +129,9 @@ export function Pricing() {
                     {loading === plan.name ? "Loading..." : plan.cta}
                   </Button>
                 ) : (
-                  <SignInButton mode="modal">
-                    <Button variant={plan.variant} className="w-full h-12 text-base">
-                      {plan.cta}
-                    </Button>
-                  </SignInButton>
+                  <Button asChild variant={plan.variant} className="w-full h-12 text-base">
+                    <Link href="/auth/login">{plan.cta}</Link>
+                  </Button>
                 )}
               </div>
             </Card>

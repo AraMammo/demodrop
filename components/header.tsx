@@ -2,12 +2,30 @@
 
 import Link from "next/link"
 import { useState, useEffect } from "react"
-import { SignInButton, UserButton, useUser } from "@clerk/nextjs"
+import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
+import type { User } from "@supabase/supabase-js"
 
 export function Header() {
-  const { isSignedIn } = useUser()
+  const [user, setUser] = useState<User | null>(null)
   const [isScrolled, setIsScrolled] = useState(false)
+  const router = useRouter()
+  const supabase = createClient()
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user)
+    })
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [supabase.auth])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,6 +34,12 @@ export function Header() {
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    router.push("/")
+    router.refresh()
+  }
 
   return (
     <header
@@ -29,17 +53,19 @@ export function Header() {
             DemoDrop
           </Link>
           <div className="flex items-center gap-4">
-            {isSignedIn ? (
+            {user ? (
               <>
                 <Link href="/dashboard">
                   <Button variant="ghost">Dashboard</Button>
                 </Link>
-                <UserButton afterSignOutUrl="/" />
+                <Button variant="outline" onClick={handleSignOut}>
+                  Sign Out
+                </Button>
               </>
             ) : (
-              <SignInButton mode="modal">
+              <Link href="/auth/login">
                 <Button variant="outline">Sign In</Button>
-              </SignInButton>
+              </Link>
             )}
           </div>
         </div>

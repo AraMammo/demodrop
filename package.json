@@ -43,6 +43,8 @@
     "@remotion/cli": "latest",
     "@remotion/player": "latest",
     "@stripe/stripe-js": "^8.1.0",
+    "@supabase/ssr": "latest",
+    "@supabase/supabase-js": "latest",
     "@vercel/analytics": "latest",
     "@vercel/blob": "latest",
     "@vercel/postgres": "latest",
