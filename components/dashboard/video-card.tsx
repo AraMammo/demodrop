@@ -27,11 +27,11 @@ export function VideoCard({ video, onDelete }: VideoCardProps) {
     failed: "Failed",
   }
 
-  const formatDate = (dateValue: string | number | null | undefined) => {
-    if (!dateValue) return "Just now"
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return "Just now"
 
     try {
-      const date = new Date(dateValue)
+      const date = new Date(dateString)
       if (isNaN(date.getTime())) return "Just now"
       return formatDistanceToNow(date, { addSuffix: true })
     } catch {
