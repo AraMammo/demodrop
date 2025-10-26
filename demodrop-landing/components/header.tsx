@@ -25,7 +25,7 @@ export function Header() {
           <Link href="/" className="text-2xl font-bold text-foreground">
             DemoDrop
           </Link>
-          <Link href="/signin" className="text-base text-muted-foreground hover:text-foreground transition-colors">
+          <Link href="/auth/login" className="text-base text-muted-foreground hover:text-foreground transition-colors">
             Sign In
           </Link>
         </div>
