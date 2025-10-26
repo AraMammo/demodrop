@@ -34,7 +34,7 @@
 
 ## Compiled Sora Prompt (30 seconds)
 
-```
+\`\`\`
 Create a 30-second professional demo video for CodeCheck.
 
 BUSINESS CONTEXT:
@@ -69,7 +69,7 @@ Technical requirements:
 - No text overlays (we'll add code section callouts in post)
 - Smooth transitions between scenes
 - Professional polish with engineering/technical aesthetic
-```
+\`\`\`
 
 ---
 
@@ -77,13 +77,13 @@ Technical requirements:
 
 If you want a longer, more detailed walkthrough:
 
-```
+\`\`\`
 Scene 1 (0-8s): Problem context - engineer with physical code book, measuring tools on printed drawings, sticky notes everywhere, looking overwhelmed
 Scene 2 (8-20s): Feature 1: Upload - drag-and-drop interface showing PDF upload, automatic file parsing, system detecting drawing type (mechanical/structural/electrical)
 Scene 3 (20-32s): Feature 2: Analysis - automated code checking engine running, violations being flagged on drawing with specific code references, confidence scores shown
 Scene 4 (32-40s): Feature 3: Report generation - standardized compliance report with cross-referenced code sections, export to PDF, ready for permit office submission
 Scene 5 (40-45s): Outcome - engineer submitting report digitally, "Review Complete" status, comparison showing 70% time reduction
-```
+\`\`\`
 
 ---
 

@@ -924,20 +924,20 @@ AI-powered demo video generation platform.
 ## Quick Start
 
 1. Install dependencies:
-```bash
+\`\`\`bash
 npm install
-```
+\`\`\`
 
 2. Set up environment variables:
-```bash
+\`\`\`bash
 cp .env.example .env.local
 # Add your OPENAI_API_KEY
-```
+\`\`\`
 
 3. Run development server:
-```bash
+\`\`\`bash
 npm run dev
-```
+\`\`\`
 
 4. Open http://localhost:3000
 
@@ -989,10 +989,10 @@ cat > DEPLOYMENT.md << 'EOF'
 
 ### 1. Push to GitHub
 
-```bash
+\`\`\`bash
 git remote add origin https://github.com/YOUR_USERNAME/demodrop.git
 git push -u origin main
-```
+\`\`\`
 
 ### 2. Import to Vercel
 
@@ -1014,16 +1014,16 @@ git push -u origin main
 
 Vercel Dashboard → Settings → Environment Variables:
 
-```
+\`\`\`
 OPENAI_API_KEY = sk-proj-your-key
 NEXT_PUBLIC_APP_URL = https://your-app.vercel.app
-```
+\`\`\`
 
 ### 5. Initialize Database
 
 Vercel Dashboard → Storage → Your Postgres → Query tab:
 
-```sql
+\`\`\`sql
 CREATE TABLE IF NOT EXISTS projects (
   id TEXT PRIMARY KEY,
   user_id TEXT,
@@ -1041,7 +1041,7 @@ CREATE TABLE IF NOT EXISTS projects (
 );
 
 CREATE INDEX idx_projects_user_id ON projects(user_id);
-```
+\`\`\`
 
 ### 6. Redeploy
 

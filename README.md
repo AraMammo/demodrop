@@ -5,20 +5,20 @@ AI-powered demo video generation platform.
 ## Quick Start
 
 1. Install dependencies:
-```bash
+\`\`\`bash
 npm install
-```
+\`\`\`
 
 2. Set up environment variables:
-```bash
+\`\`\`bash
 cp .env.example .env.local
 # Add your OPENAI_API_KEY
-```
+\`\`\`
 
 3. Run development server:
-```bash
+\`\`\`bash
 npm run dev
-```
+\`\`\`
 
 4. Open http://localhost:3000
 

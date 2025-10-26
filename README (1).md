@@ -4,18 +4,18 @@ Clean, direct landing page for DemoDrop - AI-powered demo video generation.
 
 ## Setup
 
-```bash
+\`\`\`bash
 npm install
 npm run dev
-```
+\`\`\`
 
 Open http://localhost:5173
 
 ## Build
 
-```bash
+\`\`\`bash
 npm run build
-```
+\`\`\`
 
 ## Structure
 
