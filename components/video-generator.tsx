@@ -24,6 +24,40 @@ interface GenerationState {
   projectId: string | null
 }
 
+interface PhaseInfo {
+  name: string
+  description: string
+  estimatedTime: string
+}
+
+const PHASES: Record<string, PhaseInfo> = {
+  scraping: {
+    name: "Analyzing Website",
+    description: "Extracting content and structure from your website",
+    estimatedTime: "10-15 seconds",
+  },
+  enhancing: {
+    name: "AI Enhancement",
+    description: "Creating optimized video prompt with AI",
+    estimatedTime: "10-20 seconds",
+  },
+  submitting: {
+    name: "Submitting to Sora",
+    description: "Preparing video generation request",
+    estimatedTime: "2-5 seconds",
+  },
+  generating: {
+    name: "Generating Video",
+    description: "Sora AI is creating your demo video",
+    estimatedTime: "2-5 minutes",
+  },
+  finalizing: {
+    name: "Finalizing",
+    description: "Processing and uploading your video",
+    estimatedTime: "10-30 seconds",
+  },
+}
+
 export function VideoGenerator() {
   const [websiteUrl, setWebsiteUrl] = useState("")
   const [stylePreset, setStylePreset] = useState("product-demo")
@@ -36,6 +70,8 @@ export function VideoGenerator() {
     error: null,
     projectId: null,
   })
+
+  const [displayProgress, setDisplayProgress] = useState(0)
 
   const [user, setUser] = useState<User | null>(null)
   const supabase = createClient()
@@ -53,6 +89,21 @@ export function VideoGenerator() {
 
     return () => subscription.unsubscribe()
   }, [supabase.auth])
+
+  useEffect(() => {
+    if (state.status === "generating") {
+      const interval = setInterval(() => {
+        setDisplayProgress((prev) => {
+          const diff = state.progress - prev
+          if (Math.abs(diff) < 0.1) return state.progress
+          return prev + diff * 0.1 // Smooth interpolation
+        })
+      }, 50)
+      return () => clearInterval(interval)
+    } else {
+      setDisplayProgress(state.progress)
+    }
+  }, [state.progress, state.status])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -167,9 +218,30 @@ export function VideoGenerator() {
   }
 
   const getStatusMessage = (progress: number): string => {
+    if (progress < 10) return "Queuing..."
     if (progress < 30) return "Analyzing website..."
-    if (progress < 95) return `Generating video... ${progress}%`
-    return "Finalizing..."
+    if (progress < 35) return "Enhancing with AI..."
+    if (progress < 95) return "Generating video with Sora AI..."
+    return "Finalizing your video..."
+  }
+
+  const getCurrentPhase = (progress: number): PhaseInfo => {
+    if (progress < 10) return PHASES.scraping
+    if (progress < 30) return PHASES.enhancing
+    if (progress < 35) return PHASES.submitting
+    if (progress < 95) return PHASES.generating
+    return PHASES.finalizing
+  }
+
+  const getEstimatedTimeRemaining = (progress: number): string => {
+    if (progress < 10) return "3-6 minutes"
+    if (progress < 30) return "3-5 minutes"
+    if (progress < 35) return "2-5 minutes"
+    if (progress < 50) return "2-4 minutes"
+    if (progress < 70) return "1-3 minutes"
+    if (progress < 90) return "30-90 seconds"
+    if (progress < 95) return "20-40 seconds"
+    return "Almost done..."
   }
 
   const handleReset = () => {
@@ -301,16 +373,56 @@ export function VideoGenerator() {
               </div>
 
               {state.status === "generating" && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{state.statusMessage}</span>
-                    <span className="font-medium text-foreground">{state.progress}%</span>
+                <div className="space-y-4 p-4 rounded-lg bg-muted/50 border border-border">
+                  {/* Phase information */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {/* Pulsing indicator */}
+                        <div className="relative flex h-3 w-3">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-foreground opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-foreground"></span>
+                        </div>
+                        <span className="font-semibold text-sm">{getCurrentPhase(state.progress).name}</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        Est. {getEstimatedTimeRemaining(state.progress)}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground pl-5">{getCurrentPhase(state.progress).description}</p>
                   </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-                    <div
-                      className="h-full bg-foreground transition-all duration-500 ease-out"
-                      style={{ width: `${state.progress}%` }}
-                    />
+
+                  {/* Progress bar */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">{state.statusMessage}</span>
+                      <span className="font-medium text-foreground">{Math.round(displayProgress)}%</span>
+                    </div>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-secondary relative">
+                      {/* Animated shimmer effect */}
+                      <div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"
+                        style={{
+                          backgroundSize: "200% 100%",
+                          animation: "shimmer 2s infinite",
+                        }}
+                      />
+                      <div
+                        className="h-full bg-foreground transition-all duration-300 ease-out relative"
+                        style={{ width: `${displayProgress}%` }}
+                      >
+                        {/* Glow effect on progress bar */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Phase timeline */}
+                  <div className="flex items-center justify-between text-xs text-muted-foreground pt-2">
+                    <span className={state.progress >= 10 ? "text-foreground font-medium" : ""}>Analyze</span>
+                    <span className={state.progress >= 30 ? "text-foreground font-medium" : ""}>Enhance</span>
+                    <span className={state.progress >= 35 ? "text-foreground font-medium" : ""}>Generate</span>
+                    <span className={state.progress >= 95 ? "text-foreground font-medium" : ""}>Finalize</span>
                   </div>
                 </div>
               )}
@@ -318,10 +430,25 @@ export function VideoGenerator() {
               <Button type="submit" disabled={state.status === "generating"} className="w-full h-12 text-base">
                 {state.status === "generating" ? "Generating..." : "Generate Video"}
               </Button>
+
+              {state.status === "idle" && (
+                <p className="text-xs text-center text-muted-foreground">Typical generation time: 3-6 minutes</p>
+              )}
             </form>
           </Card>
         ) : null}
       </div>
+
+      <style jsx>{`
+        @keyframes shimmer {
+          0% {
+            background-position: -200% 0;
+          }
+          100% {
+            background-position: 200% 0;
+          }
+        }
+      `}</style>
     </section>
   )
 }

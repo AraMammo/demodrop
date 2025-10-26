@@ -27,6 +27,18 @@ export function VideoCard({ video, onDelete }: VideoCardProps) {
     failed: "Failed",
   }
 
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return "Just now"
+
+    try {
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) return "Just now"
+      return formatDistanceToNow(date, { addSuffix: true })
+    } catch {
+      return "Just now"
+    }
+  }
+
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
       <Link href={`/video/${video.id}`}>
@@ -46,9 +58,7 @@ export function VideoCard({ video, onDelete }: VideoCardProps) {
           <Badge className={statusColors[video.status as keyof typeof statusColors] || "bg-gray-100 text-gray-800"}>
             {statusLabels[video.status as keyof typeof statusLabels] || video.status}
           </Badge>
-          <span className="text-xs text-gray-500">
-            {formatDistanceToNow(new Date(video.createdAt), { addSuffix: true })}
-          </span>
+          <span className="text-xs text-gray-500">{formatDate(video.createdAt)}</span>
         </div>
 
         <h3 className="font-medium text-gray-900 mb-1 truncate text-sm">{video.websiteUrl}</h3>
