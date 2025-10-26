@@ -1,19 +1,11 @@
-'use client';
+"use client"
 
-import { VideoCard } from './video-card';
-
-interface Video {
-  id: string;
-  website_url: string;
-  style_preset: string;
-  status: string;
-  video_url?: string;
-  created_at: number;
-}
+import { VideoCard } from "./video-card"
+import type { Project } from "@/lib/db"
 
 interface VideoGridProps {
-  videos: Video[];
-  onDelete: (id: string) => void;
+  videos: Project[]
+  onDelete: (id: string) => void
 }
 
 export function VideoGrid({ videos, onDelete }: VideoGridProps) {
@@ -23,5 +15,5 @@ export function VideoGrid({ videos, onDelete }: VideoGridProps) {
         <VideoCard key={video.id} video={video} onDelete={onDelete} />
       ))}
     </div>
-  );
+  )
 }

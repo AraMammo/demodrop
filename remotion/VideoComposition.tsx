@@ -1,13 +1,13 @@
 import { Video, AbsoluteFill } from 'remotion';
 
-export interface VideoCompositionProps {
-  videoUrl?: string;
+interface VideoCompositionProps {
+  videoUrl: string;
 }
 
-export const VideoComposition = ({ videoUrl = '' }: VideoCompositionProps) => {
+export const VideoComposition: React.FC<VideoCompositionProps> = ({ videoUrl }) => {
   return (
     <AbsoluteFill>
-      {videoUrl && <Video src={videoUrl} />}
+      <Video src={videoUrl} />
     </AbsoluteFill>
   );
 };

@@ -8,21 +8,12 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import type { User } from "@supabase/supabase-js"
-
-interface Video {
-  id: string
-  website_url: string
-  style_preset: string
-  status: string
-  video_url?: string
-  created_at: number
-  completed_at?: number
-}
+import type { Project } from "@/lib/db"
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
-  const [videos, setVideos] = useState<Video[]>([])
+  const [videos, setVideos] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<string>("all")

@@ -11,7 +11,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@clerk/nextjs": "latest",
+    "@clerk/nextjs": "^6.34.0",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "latest",
     "@radix-ui/react-alert-dialog": "latest",
@@ -43,8 +43,8 @@
     "@remotion/cli": "latest",
     "@remotion/player": "latest",
     "@stripe/stripe-js": "^8.1.0",
-    "@supabase/ssr": "^0.7.0",
-    "@supabase/supabase-js": "^2.76.1",
+    "@supabase/ssr": "latest",
+    "@supabase/supabase-js": "latest",
     "@vercel/analytics": "latest",
     "@vercel/blob": "latest",
     "@vercel/postgres": "latest",

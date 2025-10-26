@@ -27,10 +27,6 @@ export async function POST(req: NextRequest) {
     projectId = body.projectId;
     const { websiteUrl, stylePreset, customInstructions } = body;
 
-    if (!projectId) {
-      return NextResponse.json({ error: 'Missing projectId' }, { status: 400 });
-    }
-
     // Phase 1: Scrape website
     await updateProject(projectId, { status: 'scraping', progress: 10 });
 
@@ -88,20 +84,13 @@ export async function POST(req: NextRequest) {
       progress: 30,
     });
 
-    // Map preset duration to valid Sora durations (4, 8, or 12 seconds as strings)
-    const mapDurationToSora = (duration: number): '4' | '8' | '12' => {
-      if (duration <= 4) return '4';
-      if (duration <= 8) return '8';
-      return '12'; // Default to max duration for longer presets
-    };
-
     let soraJob;
     try {
       soraJob = await getOpenAI().videos.create({
         model: 'sora-2',
         prompt: prompt,
-        seconds: mapDurationToSora(preset.duration),
-        size: '1280x720', // 16:9 horizontal format
+        seconds: preset.duration.toString(),
+        size: '1920x1080',
       });
 
       console.log('Sora job created:', soraJob.id);
