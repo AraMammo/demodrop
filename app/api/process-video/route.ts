@@ -66,27 +66,43 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Phase 3: Submit to Sora (TODO: Implement when Sora API is available)
+    // Phase 3: Submit to Sora
     await updateProject(projectId, {
       status: 'generating',
       prompt,
       progress: 30,
     });
 
-    // TODO: Sora API integration when available
-    // For now, return the enhanced prompt for review
+    let soraJob;
+    try {
+      soraJob = await getOpenAI().videos.create({
+        model: 'sora-2',
+        prompt: prompt,
+        seconds: preset.duration.toString(),
+        size: '1920x1080',
+      });
+
+      console.log('Sora job created:', soraJob.id);
+
+    } catch (error: any) {
+      console.error('Sora API error:', error);
+      await updateProject(projectId, {
+        status: 'failed',
+        error: error.message || 'Failed to start Sora generation',
+      });
+      return NextResponse.json({ error: 'Sora API failed' }, { status: 500 });
+    }
+
+    // Store Sora job ID
     await updateProject(projectId, {
-      status: 'completed',
-      prompt,
-      progress: 100,
-      completedAt: Date.now(),
+      soraJobId: soraJob.id,
+      progress: 35,
     });
 
-    return NextResponse.json({
-      status: 'completed',
-      message: 'AI-orchestrated prompt created successfully. Sora API integration pending.',
-      prompt,
-    });
+    // Phase 4: Poll Sora until complete
+    const result = await pollSoraJob(projectId, soraJob.id);
+
+    return NextResponse.json(result);
 
   } catch (error) {
     console.error('Process video error:', error);
@@ -97,70 +113,69 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// TODO: Implement when Sora API is available
-// async function pollSoraJob(projectId: string, soraJobId: string) {
-//   const maxAttempts = 60; // 5 minutes max (5s intervals)
-//
-//   for (let i = 0; i < maxAttempts; i++) {
-//     try {
-//       const soraJob = await getOpenAI().videos.retrieve(soraJobId);
-//
-//       // Map Sora progress to our scale (35-95%)
-//       const mappedProgress = Math.min(95, 35 + (soraJob.progress || 0) * 0.6);
-//
-//       await updateProject(projectId, {
-//         progress: Math.round(mappedProgress),
-//       });
-//
-//       if (soraJob.status === 'completed') {
-//         console.log('Sora generation completed');
-//
-//         // Download video content
-//         await updateProject(projectId, { progress: 96 });
-//         const videoResponse = await getOpenAI().videos.downloadContent(soraJobId);
-//         const videoBlob = await videoResponse.blob();
-//
-//         // Upload to storage
-//         await updateProject(projectId, { progress: 98 });
-//         const videoUrl = await uploadVideoToStorage(videoBlob, projectId);
-//
-//         // Final update
-//         await updateProject(projectId, {
-//           status: 'completed',
-//           videoUrl,
-//           completedAt: Date.now(),
-//           progress: 100,
-//         });
-//
-//         console.log('Video uploaded successfully:', videoUrl);
-//
-//         return { status: 'completed', videoUrl };
-//       }
-//
-//       if (soraJob.status === 'failed') {
-//         console.error('Sora job failed:', soraJob.error);
-//         await updateProject(projectId, {
-//           status: 'failed',
-//           error: soraJob.error?.message || 'Sora generation failed',
-//         });
-//         return { status: 'failed', error: soraJob.error };
-//       }
-//
-//       // Wait 5 seconds before next poll
-//       await new Promise(resolve => setTimeout(resolve, 5000));
-//
-//     } catch (error) {
-//       console.error('Poll error:', error);
-//       // Continue polling unless max attempts reached
-//     }
-//   }
-//
-//   // Timeout
-//   console.error('Sora job timeout');
-//   await updateProject(projectId, {
-//     status: 'failed',
-//     error: 'Generation timeout - please try again',
-//   });
-//
-//   return { status: 'failed', error: 'Timeout' };
-// }
+async function pollSoraJob(projectId: string, soraJobId: string) {
+  const maxAttempts = 60; // 5 minutes max (5s intervals)
+
+  for (let i = 0; i < maxAttempts; i++) {
+    try {
+      const soraJob = await getOpenAI().videos.retrieve(soraJobId);
+
+      // Map Sora progress to our scale (35-95%)
+      const mappedProgress = Math.min(95, 35 + (soraJob.progress || 0) * 0.6);
+
+      await updateProject(projectId, {
+        progress: Math.round(mappedProgress),
+      });
+
+      if (soraJob.status === 'completed') {
+        console.log('Sora generation completed');
+
+        // Download video content
+        await updateProject(projectId, { progress: 96 });
+        const videoResponse = await getOpenAI().videos.downloadContent(soraJobId);
+        const videoBlob = await videoResponse.blob();
+
+        // Upload to storage
+        await updateProject(projectId, { progress: 98 });
+        const videoUrl = await uploadVideoToStorage(videoBlob, projectId);
+
+        // Final update
+        await updateProject(projectId, {
+          status: 'completed',
+          videoUrl,
+          completedAt: Date.now(),
+          progress: 100,
+        });
+
+        console.log('Video uploaded successfully:', videoUrl);
+
+        return { status: 'completed', videoUrl };
+      }
+
+      if (soraJob.status === 'failed') {
+        console.error('Sora job failed:', soraJob.error);
+        await updateProject(projectId, {
+          status: 'failed',
+          error: soraJob.error?.message || 'Sora generation failed',
+        });
+        return { status: 'failed', error: soraJob.error };
+      }
+
+      // Wait 5 seconds before next poll
+      await new Promise(resolve => setTimeout(resolve, 5000));
+
+    } catch (error) {
+      console.error('Poll error:', error);
+      // Continue polling unless max attempts reached
+    }
+  }
+
+  // Timeout
+  console.error('Sora job timeout');
+  await updateProject(projectId, {
+    status: 'failed',
+    error: 'Generation timeout - please try again',
+  });
+
+  return { status: 'failed', error: 'Timeout' };
+}
