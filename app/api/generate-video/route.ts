@@ -1,14 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
 import { v4 as uuidv4 } from 'uuid';
-import { createProject } from '@/lib/db';
+import { createProject, checkUserQuota, getUser, createUser } from '@/lib/db';
 import { STYLE_PRESETS } from '@/lib/sora-prompt-builder';
 
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {
+    // Get authenticated user
+    const { userId } = await auth();
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Please sign in' },
+        { status: 401 }
+      );
+    }
+
+    // Ensure user exists in database
+    let user = await getUser(userId);
+    if (!user) {
+      // Get user email from Clerk
+      const clerkUser = await (await import('@clerk/nextjs/server')).currentUser();
+      const email = clerkUser?.emailAddresses[0]?.emailAddress || `${userId}@clerk.user`;
+      user = await createUser({ id: userId, email });
+    }
+
+    // Check quota
+    const quota = await checkUserQuota(userId);
+    if (!quota.hasQuota) {
+      return NextResponse.json(
+        {
+          error: 'Quota exceeded',
+          message: `You've used ${quota.videosUsed} of ${quota.videosLimit} videos. Upgrade to Pro for unlimited videos.`,
+          videosUsed: quota.videosUsed,
+          videosLimit: quota.videosLimit,
+        },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json();
-    const { websiteUrl, stylePreset, customInstructions, userId } = body;
+    const { websiteUrl, stylePreset, customInstructions } = body;
 
     if (!websiteUrl) {
       return NextResponse.json(

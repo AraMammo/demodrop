@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
+import { useUser, SignInButton } from "@clerk/nextjs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -22,6 +23,7 @@ interface GenerationState {
 }
 
 export function VideoGenerator() {
+  const { isSignedIn, user } = useUser()
   const [websiteUrl, setWebsiteUrl] = useState("")
   const [stylePreset, setStylePreset] = useState("product-demo")
   const [customInstructions, setCustomInstructions] = useState("")
@@ -60,7 +62,19 @@ export function VideoGenerator() {
       })
 
       if (!response.ok) {
-        throw new Error("Failed to start video generation")
+        const errorData = await response.json()
+
+        // Handle quota exceeded
+        if (response.status === 403 && errorData.error === 'Quota exceeded') {
+          throw new Error(errorData.message || "You've reached your video limit. Please upgrade to continue.")
+        }
+
+        // Handle unauthorized
+        if (response.status === 401) {
+          throw new Error("Please sign in to generate videos")
+        }
+
+        throw new Error(errorData.error || "Failed to start video generation")
       }
 
       const { projectId } = await response.json()
@@ -167,13 +181,23 @@ export function VideoGenerator() {
       <div className="mx-auto max-w-3xl">
         <h2 className="text-3xl sm:text-4xl font-bold text-center text-foreground mb-12">Generate Your Demo Video</h2>
 
-        {state.status === "error" && (
+        {!isSignedIn && (
+          <Card className="p-8 bg-card text-center">
+            <h3 className="text-xl font-semibold mb-4">Sign in to generate videos</h3>
+            <p className="text-muted-foreground mb-6">Create your free account to start generating demo videos</p>
+            <SignInButton mode="modal">
+              <Button size="lg">Sign In / Sign Up</Button>
+            </SignInButton>
+          </Card>
+        )}
+
+        {isSignedIn && state.status === "error" && (
           <Card className="mb-6 p-4 bg-destructive/10 border-destructive">
             <p className="text-sm text-destructive font-medium">{state.error}</p>
           </Card>
         )}
 
-        {state.status === "complete" && state.videoUrl ? (
+        {isSignedIn && state.status === "complete" && state.videoUrl ? (
           <div className="space-y-6">
             <Card className="p-6 bg-card">
               <video src={state.videoUrl} controls className="w-full rounded-lg" />
@@ -187,7 +211,7 @@ export function VideoGenerator() {
               </Button>
             </div>
           </div>
-        ) : (
+        ) : isSignedIn ? (
           <Card className="p-6 sm:p-8 bg-card">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
@@ -258,7 +282,7 @@ export function VideoGenerator() {
               </Button>
             </form>
           </Card>
-        )}
+        ) : null}
       </div>
     </section>
   )

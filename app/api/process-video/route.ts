@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { buildSoraPrompt, STYLE_PRESETS } from '@/lib/sora-prompt-builder';
 import { scrapeWebsite } from '@/lib/dumpling';
-import { updateProject } from '@/lib/db';
+import { updateProject, getProject, incrementUserVideoCount } from '@/lib/db';
 import { uploadVideoToStorage } from '@/lib/storage';
 import { createProductionPrompt } from '@/lib/prompt-orchestrator';
 
@@ -170,6 +170,18 @@ async function pollSoraJob(projectId: string, soraJobId: string) {
           completedAt: Date.now(),
           progress: 100,
         });
+
+        // Increment user's video count
+        const project = await getProject(projectId);
+        if (project && project.user_id) {
+          try {
+            await incrementUserVideoCount(project.user_id);
+            console.log('User video count incremented for user:', project.user_id);
+          } catch (error) {
+            console.error('Failed to increment user video count:', error);
+            // Don't fail the request if this fails
+          }
+        }
 
         console.log('Video uploaded successfully:', videoUrl);
 

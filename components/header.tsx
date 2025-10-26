@@ -2,8 +2,11 @@
 
 import Link from "next/link"
 import { useState, useEffect } from "react"
+import { SignInButton, UserButton, useUser } from "@clerk/nextjs"
+import { Button } from "@/components/ui/button"
 
 export function Header() {
+  const { isSignedIn } = useUser()
   const [isScrolled, setIsScrolled] = useState(false)
 
   useEffect(() => {
@@ -25,9 +28,15 @@ export function Header() {
           <Link href="/" className="text-2xl font-bold text-foreground">
             DemoDrop
           </Link>
-          <Link href="/signin" className="text-base text-muted-foreground hover:text-foreground transition-colors">
-            Sign In
-          </Link>
+          <div className="flex items-center gap-4">
+            {isSignedIn ? (
+              <UserButton afterSignOutUrl="/" />
+            ) : (
+              <SignInButton mode="modal">
+                <Button variant="outline">Sign In</Button>
+              </SignInButton>
+            )}
+          </div>
         </div>
       </div>
     </header>
