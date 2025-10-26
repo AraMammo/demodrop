@@ -39,16 +39,24 @@ export async function POST(req: NextRequest) {
     }
 
     // Phase 2: AI Orchestration - Enhance the prompt
-    await updateProject(projectId, { status: 'orchestrating', progress: 20 });
+    await updateProject(projectId, { status: 'generating', progress: 20 });
     
     const preset = STYLE_PRESETS[stylePreset];
     let prompt;
-    
+
     try {
+      // Transform preset to match orchestrator expectations
+      const orchestratorPreset = {
+        name: preset.name,
+        tone: preset.tone,
+        pacing: preset.pacing_style,
+        aesthetic: preset.visual_aesthetic,
+      };
+
       // Use AI orchestrator to create production-quality, unique prompt
       prompt = await createProductionPrompt(
         websiteData,
-        preset,
+        orchestratorPreset,
         customInstructions,
         preset.duration
       );

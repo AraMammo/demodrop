@@ -90,7 +90,7 @@ export function VideoGenerator() {
 
         const data = await response.json()
 
-        if (data.status === "complete") {
+        if (data.status === "completed") {
           clearInterval(pollInterval)
           setState({
             status: "complete",
@@ -100,7 +100,7 @@ export function VideoGenerator() {
             error: null,
             projectId,
           })
-        } else if (data.status === "error") {
+        } else if (data.status === "failed") {
           clearInterval(pollInterval)
           setState({
             status: "error",
