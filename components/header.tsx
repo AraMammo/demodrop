@@ -30,7 +30,12 @@ export function Header() {
           </Link>
           <div className="flex items-center gap-4">
             {isSignedIn ? (
-              <UserButton afterSignOutUrl="/" />
+              <>
+                <Link href="/dashboard">
+                  <Button variant="ghost">Dashboard</Button>
+                </Link>
+                <UserButton afterSignOutUrl="/" />
+              </>
             ) : (
               <SignInButton mode="modal">
                 <Button variant="outline">Sign In</Button>

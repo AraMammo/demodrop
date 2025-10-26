@@ -6,7 +6,9 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "remotion": "remotion studio",
+    "render": "remotion render"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.34.0",
@@ -38,6 +40,8 @@
     "@radix-ui/react-toggle": "latest",
     "@radix-ui/react-toggle-group": "latest",
     "@radix-ui/react-tooltip": "latest",
+    "@remotion/cli": "^4.0.366",
+    "@remotion/player": "^4.0.366",
     "@stripe/stripe-js": "^8.1.0",
     "@vercel/analytics": "latest",
     "@vercel/blob": "latest",
@@ -46,7 +50,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "latest",
-    "date-fns": "4.1.0",
+    "date-fns": "^4.1.0",
     "embla-carousel-react": "latest",
     "input-otp": "latest",
     "lucide-react": "^0.454.0",
@@ -59,6 +63,7 @@
     "react-hook-form": "latest",
     "react-resizable-panels": "latest",
     "recharts": "latest",
+    "remotion": "^4.0.366",
     "sonner": "latest",
     "stripe": "^19.1.0",
     "tailwind-merge": "^2.5.5",
