@@ -5,9 +5,16 @@ import { scrapeWebsite } from '@/lib/dumpling';
 import { updateProject } from '@/lib/db';
 import { uploadVideoToStorage } from '@/lib/storage';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazy initialization to avoid build-time errors
+let openai: OpenAI | null = null;
+function getOpenAI() {
+  if (!openai) {
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY || 'placeholder',
+    });
+  }
+  return openai;
+}
 
 export const maxDuration = 300;
 
