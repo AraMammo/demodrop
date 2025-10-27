@@ -117,10 +117,16 @@ Make it cinematic. Make it unique. Make it impossible to confuse with any other 
     });
 
     const orchestratedContent = JSON.parse(response.choices[0].message.content || '{}');
-    
+
+    // If orchestration didn't return proper data, use fallback
+    if (!orchestratedContent.enhancedPrompt) {
+      console.log('[orchestrator] AI did not return enhancedPrompt, using fallback');
+      return buildFallbackPrompt(input);
+    }
+
     // Validate and structure the response
     const result: OrchestratedPrompt = {
-      enhancedPrompt: orchestratedContent.enhancedPrompt || buildFallbackPrompt(input),
+      enhancedPrompt: orchestratedContent.enhancedPrompt,
       cinematicElements: orchestratedContent.cinematicElements || {
         lighting: 'Natural, warm golden hour lighting',
         cameraWork: 'Steady handheld with intentional movement',

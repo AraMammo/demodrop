@@ -59,7 +59,7 @@ export async function scrapeWebsite(url: string): Promise<WebsiteData> {
     const industry = inferIndustry(title, heroText, description);
     const targetAudience = inferTargetAudience(title, heroText, description);
 
-    return {
+    const result = {
       title,
       heroText,
       features,
@@ -67,6 +67,10 @@ export async function scrapeWebsite(url: string): Promise<WebsiteData> {
       industry,
       targetAudience,
     };
+
+    console.log('[dumpling] Extracted data:', JSON.stringify(result, null, 2));
+
+    return result;
   } catch (error) {
     console.error('[dumpling] Scraping failed:', error);
     return getFallbackData(url);

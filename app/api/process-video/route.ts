@@ -41,7 +41,12 @@ export async function POST(req: NextRequest) {
     let websiteData;
     try {
       websiteData = await scrapeWebsite(websiteUrl);
-      console.log('[process-video] Website scraped successfully');
+      console.log('[process-video] Website scraped successfully:', {
+        title: websiteData.title,
+        heroText: websiteData.heroText?.substring(0, 50),
+        featuresCount: websiteData.features?.length,
+        industry: websiteData.industry,
+      });
     } catch (error) {
       console.error('[process-video] Scraping failed:', error);
       await updateProject(projectId, {
@@ -87,10 +92,11 @@ export async function POST(req: NextRequest) {
         actualDurationSeconds  // Use actual Sora duration (4, 8, or 12)
       );
 
-      console.log('AI-orchestrated prompt created for', actualDurationSeconds, 'seconds');
+      console.log('[process-video] AI-orchestrated prompt created for', actualDurationSeconds, 'seconds');
+      console.log('[process-video] Prompt preview:', prompt.substring(0, 200) + '...');
 
     } catch (orchestrationError) {
-      console.log('Orchestration failed, falling back to basic prompt:', orchestrationError);
+      console.log('[process-video] Orchestration failed, falling back to basic prompt:', orchestrationError);
 
       // Fallback to basic prompt if orchestrator fails
       prompt = await buildSoraPrompt({
