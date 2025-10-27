@@ -38,23 +38,28 @@ const PHASES: Record<string, PhaseInfo> = {
   },
   enhancing: {
     name: "AI Enhancement",
-    description: "Creating optimized video prompt with AI",
-    estimatedTime: "10-20 seconds",
+    description: "Creating optimized 2-part video story with AI",
+    estimatedTime: "15-25 seconds",
   },
-  submitting: {
-    name: "Submitting to Sora",
-    description: "Preparing video generation request",
-    estimatedTime: "2-5 seconds",
+  generating_clip1: {
+    name: "Generating Part 1",
+    description: "Creating opening scene (0-12s)",
+    estimatedTime: "3-5 minutes",
   },
-  generating: {
-    name: "Generating Video",
-    description: "Sora AI is creating your demo video",
-    estimatedTime: "2-5 minutes",
+  generating_clip2: {
+    name: "Generating Part 2",
+    description: "Creating conclusion (12-24s)",
+    estimatedTime: "3-5 minutes",
+  },
+  stitching: {
+    name: "Stitching Clips",
+    description: "Merging clips into 24-second video",
+    estimatedTime: "20-40 seconds",
   },
   finalizing: {
     name: "Finalizing",
-    description: "Processing and uploading your video",
-    estimatedTime: "10-30 seconds",
+    description: "Uploading your completed video",
+    estimatedTime: "10-20 seconds",
   },
 }
 
@@ -253,28 +258,30 @@ export function VideoGenerator() {
 
   const getStatusMessage = (progress: number): string => {
     if (progress < 10) return "Queuing..."
-    if (progress < 30) return "Analyzing website..."
-    if (progress < 35) return "Enhancing with AI..."
-    if (progress < 95) return "Generating video with Sora AI..."
-    return "Finalizing your video..."
+    if (progress < 30) return "Analyzing website & creating story..."
+    if (progress < 35) return "Splitting into 2-part narrative..."
+    if (progress < 60) return "Generating opening scene (Part 1/2)..."
+    if (progress < 85) return "Generating conclusion (Part 2/2)..."
+    if (progress < 95) return "Stitching clips together..."
+    return "Finalizing your 24-second video..."
   }
 
   const getCurrentPhase = (progress: number): PhaseInfo => {
     if (progress < 10) return PHASES.scraping
     if (progress < 30) return PHASES.enhancing
-    if (progress < 35) return PHASES.submitting
-    if (progress < 95) return PHASES.generating
+    if (progress < 60) return PHASES.generating_clip1
+    if (progress < 85) return PHASES.generating_clip2
+    if (progress < 95) return PHASES.stitching
     return PHASES.finalizing
   }
 
   const getEstimatedTimeRemaining = (progress: number): string => {
-    if (progress < 10) return "3-6 minutes"
-    if (progress < 30) return "3-5 minutes"
-    if (progress < 35) return "2-5 minutes"
-    if (progress < 50) return "2-4 minutes"
-    if (progress < 70) return "1-3 minutes"
-    if (progress < 90) return "30-90 seconds"
-    if (progress < 95) return "20-40 seconds"
+    if (progress < 10) return "8-10 minutes"
+    if (progress < 30) return "7-9 minutes"
+    if (progress < 35) return "7-8 minutes"
+    if (progress < 60) return "5-7 minutes"  // Clip 1 generating
+    if (progress < 85) return "3-5 minutes"  // Clip 2 generating
+    if (progress < 95) return "30-60 seconds"  // Stitching
     return "Almost done..."
   }
 
@@ -460,9 +467,10 @@ export function VideoGenerator() {
 
                   <div className="flex items-center justify-between text-xs text-muted-foreground pt-2">
                     <span className={state.progress >= 10 ? "text-foreground font-medium" : ""}>Analyze</span>
-                    <span className={state.progress >= 30 ? "text-foreground font-medium" : ""}>Enhance</span>
-                    <span className={state.progress >= 35 ? "text-foreground font-medium" : ""}>Generate</span>
-                    <span className={state.progress >= 95 ? "text-foreground font-medium" : ""}>Finalize</span>
+                    <span className={state.progress >= 30 ? "text-foreground font-medium" : ""}>Create</span>
+                    <span className={state.progress >= 60 ? "text-foreground font-medium" : ""}>Part 1</span>
+                    <span className={state.progress >= 85 ? "text-foreground font-medium" : ""}>Part 2</span>
+                    <span className={state.progress >= 95 ? "text-foreground font-medium" : ""}>Stitch</span>
                   </div>
                 </div>
               )}
@@ -472,7 +480,9 @@ export function VideoGenerator() {
               </Button>
 
               {state.status === "idle" && (
-                <p className="text-xs text-center text-muted-foreground">Typical generation time: 3-6 minutes</p>
+                <p className="text-xs text-center text-muted-foreground">
+                  Typical generation time: 8-10 minutes • Creates 24-second video
+                </p>
               )}
             </form>
           </Card>
