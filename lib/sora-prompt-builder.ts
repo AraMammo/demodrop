@@ -97,6 +97,13 @@ export async function buildSoraPrompt(params: {
 
   const prompt = `Create a ${videoDuration}-second professional demo video for ${businessName}.
 
+CRITICAL TIMING CONSTRAINT:
+- Total video duration: EXACTLY ${videoDuration} seconds
+- Any voiceover/narration MUST complete within ${videoDuration} seconds
+- Script should be ${getWordCountForDuration(videoDuration)} words maximum (at 2.5 words per second)
+- Pacing must feel natural, not rushed
+- All scenes and transitions must fit within the ${videoDuration}-second limit
+
 BUSINESS CONTEXT:
 - Industry: ${industry}
 - Primary offering: ${valueProp}
@@ -114,6 +121,13 @@ VISUAL STYLE:
 SCENE STRUCTURE:
 ${generateSceneStructure(videoDuration, preset.pacing_style)}
 
+VOICEOVER GUIDANCE:
+- Keep narration concise and impactful
+- Maximum ${getWordCountForDuration(videoDuration)} words total
+- Allow time for visual moments without narration
+- Natural pauses between key points
+- Must complete before the ${videoDuration}-second mark
+
 ${customInstructions ? `SPECIAL INSTRUCTIONS:\n${customInstructions}\n` : ''}
 Technical requirements:
 - Aspect ratio: 16:9
@@ -123,6 +137,12 @@ Technical requirements:
 - Professional polish`;
 
   return prompt;
+}
+
+function getWordCountForDuration(seconds: number): number {
+  // Comfortable speaking pace is 2.5 words per second
+  // But leave room for pauses and visual moments (80% of time for speaking)
+  return Math.floor(seconds * 2.5 * 0.8);
 }
 
 function generateSceneStructure(duration: number, pacing: string): string {

@@ -93,17 +93,24 @@ Return a JSON object with the enhanced prompt and production details.`;
 **User's Specific Instructions:**
 ${input.userInstructions || 'None provided - use your expertise to create the most compelling video possible'}
 
-**Duration:** ${input.duration} seconds
+**CRITICAL TIMING CONSTRAINT:**
+- Duration: EXACTLY ${input.duration} seconds
+- Any voiceover/narration MUST complete within ${input.duration} seconds
+- Maximum ${Math.floor(input.duration * 2.5 * 0.8)} words for voiceover (comfortable speaking pace with pauses)
+- All scenes, transitions, and narration must fit within ${input.duration}-second limit
+- Pacing should feel natural, not rushed
 
 Transform this into a production-ready video prompt that includes:
 1. Specific visual metaphors unique to this business
 2. Detailed lighting and color palette (specific hex codes or moods)
 3. Camera movements and composition (precise shot types)
 4. Authentic human moments (not stock footage scenarios)
-5. Scene-by-scene breakdown with exact timing
+5. Scene-by-scene breakdown with exact timing that adds up to ${input.duration} seconds
 6. Emotional beats that build viewer connection
+7. Concise voiceover script (max ${Math.floor(input.duration * 2.5 * 0.8)} words) with natural pauses
 
-Make it cinematic. Make it unique. Make it impossible to confuse with any other company's video.`;
+Make it cinematic. Make it unique. Make it impossible to confuse with any other company's video.
+CRITICAL: Ensure all timing fits within the ${input.duration}-second constraint.`;
 
   try {
     const response = await getOpenAI().chat.completions.create({
@@ -155,9 +162,16 @@ function buildFallbackPrompt(input: OrchestrationInput): OrchestratedPrompt {
   const businessName = input.websiteData.title;
   const industry = input.websiteData.industry;
   const tone = input.stylePreset.tone;
-  
+  const maxWords = Math.floor(input.duration * 2.5 * 0.8);
+
   return {
     enhancedPrompt: `Create a ${input.duration}-second cinematic demo video for ${businessName}, a ${industry} company.
+
+CRITICAL TIMING CONSTRAINT:
+- Duration: EXACTLY ${input.duration} seconds
+- Any voiceover/narration MUST complete within ${input.duration} seconds
+- Maximum ${maxWords} words for voiceover (2.5 words/sec with pauses)
+- All scenes and transitions must fit within ${input.duration}-second limit
 
 Visual Style: ${input.stylePreset.aesthetic}
 Emotional Tone: ${tone}
@@ -167,6 +181,11 @@ Scene Structure:
 - Opening: Establish the problem with authentic human frustration (not stock footage)
 - Middle: Show the product solving the problem with specific UI interactions
 - Closing: Real satisfaction moment - genuine emotion, not posed
+
+Voiceover Script (Maximum ${maxWords} words):
+- Concise, impactful narration
+- Natural pauses between key points
+- Must complete before ${input.duration}-second mark
 
 Cinematography:
 - Use natural lighting with practical sources
