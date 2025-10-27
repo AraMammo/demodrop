@@ -100,7 +100,9 @@ export async function buildSoraPrompt(params: {
 
   const businessName = websiteData.title || 'Your Business';
   const valueProp = websiteData.heroText || websiteData.metaDescription || 'Innovative solutions';
-  const features = websiteData.features.slice(0, 3);
+  // For 12-second videos, focus on 1-2 key features. For longer videos, show up to 3.
+  const featureCount = videoDuration <= 12 ? 2 : 3;
+  const features = websiteData.features.slice(0, featureCount);
   const brand = websiteData.brand;
 
   const prompt = `Create a ${videoDuration}-second professional demo video for ${businessName}.
@@ -111,6 +113,15 @@ CRITICAL TIMING CONSTRAINT:
 - Script should be ${getWordCountForDuration(videoDuration)} words maximum (at 2.5 words per second)
 - Pacing must feel natural, not rushed
 - All scenes and transitions must fit within the ${videoDuration}-second limit
+${videoDuration <= 12 ? `
+12-SECOND VIDEO BEST PRACTICES:
+- Make first 2 seconds COUNT - immediate brand recognition with logo and primary brand color
+- Tell ONE story well, not multiple stories poorly
+- Every frame must serve a purpose - no filler, no generic B-roll
+- Strong opening hook that grabs attention in first 3 seconds
+- Clear visual narrative that works even without audio
+- Memorable closing frame that reinforces brand identity
+- Aim for 3-4 scenes maximum to avoid feeling choppy` : ''}
 
 BUSINESS CONTEXT:
 - Industry: ${industry}
@@ -120,6 +131,7 @@ BUSINESS CONTEXT:
 
 KEY FEATURES TO SHOWCASE:
 ${features.map(f => `- ${f}`).join('\n')}
+${videoDuration <= 12 ? `NOTE: For ${videoDuration}-second videos, focus on showcasing ONE primary feature exceptionally well rather than cramming multiple features. Quality over quantity.` : ''}
 
 BRAND IDENTITY (CRITICAL - MUST BE ON-BRAND):
 - Brand colors: ${brand.colors.join(', ')} - USE THESE EXACT COLORS throughout the video
@@ -139,10 +151,11 @@ ${generateSceneStructure(videoDuration, preset.pacing_style)}
 
 VOICEOVER GUIDANCE:
 - Keep narration concise and impactful
-- Maximum ${getWordCountForDuration(videoDuration)} words total
+- Maximum ${getWordCountForDuration(videoDuration)} words total${videoDuration <= 12 ? ` (only ${getWordCountForDuration(videoDuration)} words - make EVERY word count!)` : ''}
 - Allow time for visual moments without narration
 - Natural pauses between key points
 - Must complete before the ${videoDuration}-second mark
+${videoDuration <= 12 ? `- For ${videoDuration}s: Consider using just a single powerful tagline (5-8 words) rather than full narration` : ''}
 
 ${customInstructions ? `SPECIAL INSTRUCTIONS:\n${customInstructions}\n` : ''}
 Technical requirements:
@@ -170,10 +183,10 @@ function generateSceneStructure(duration: number, pacing: string): string {
 Scene 2 (3-6s): Solution/product reveal
 Scene 3 (6-8s): Key benefit or call to action`;
   } else if (duration <= 12) {
-    return `Scene 1 (0-3s): Hook - establish the problem or context
-Scene 2 (3-7s): Solution - show product/service in action
-Scene 3 (7-10s): Benefit - demonstrate key value
-Scene 4 (10-12s): Outcome - satisfied result or next step`;
+    return `Scene 1 (0-3s): POWERFUL HOOK - Show brand identity (logo/colors) + core problem in one visceral moment. Make it instantly recognizable.
+Scene 2 (3-7s): SOLUTION IN ACTION - Product/service solving the problem. Focus on ONE key feature, not everything. Show the 'aha' moment.
+Scene 3 (7-10s): EMOTIONAL PAYOFF - Satisfied user, visible results, clear benefit. Real human reaction, not stock poses.
+Scene 4 (10-12s): BRAND MOMENT - Reinforce identity with logo/colors. Memorable closing visual that sticks in viewer's mind.`;
   } else if (duration <= 20) {
     return `Scene 1 (0-4s): Hook - problem visualization
 Scene 2 (4-9s): Product introduction and key feature

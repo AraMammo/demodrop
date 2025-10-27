@@ -113,6 +113,16 @@ ${input.userInstructions || 'None provided - use your expertise to create the mo
 - Maximum ${Math.floor(input.duration * 2.5 * 0.8)} words for voiceover (comfortable speaking pace with pauses)
 - All scenes, transitions, and narration must fit within ${input.duration}-second limit
 - Pacing should feel natural, not rushed
+${input.duration <= 12 ? `
+**12-SECOND VIDEO OPTIMIZATION:**
+Since this is a ${input.duration}-second video, every frame counts. Prioritize:
+1. IMMEDIATE brand recognition - logo/colors visible within first 2 seconds
+2. ONE clear, powerful message - don't try to show everything
+3. Strong opening hook (0-3s) that grabs attention instantly
+4. Clear visual progression that tells a story even without sound
+5. Memorable closing moment that reinforces brand identity
+6. Avoid excessive scene changes - aim for smooth, purposeful transitions
+7. Make every second count - no filler, no generic footage` : ''}
 
 Transform this into a production-ready video prompt that includes:
 1. Specific visual metaphors unique to this business
@@ -187,6 +197,7 @@ CRITICAL TIMING CONSTRAINT:
 - Any voiceover/narration MUST complete within ${input.duration} seconds
 - Maximum ${maxWords} words for voiceover (2.5 words/sec with pauses)
 - All scenes and transitions must fit within ${input.duration}-second limit
+${input.duration <= 12 ? `- For ${input.duration}-second videos: Immediate brand visibility (0-2s), one clear message, strong hook, memorable closing` : ''}
 
 BRAND IDENTITY (MUST BE ON-BRAND):
 - Brand Colors: ${brand.colors.join(', ')} - Use these exact colors throughout
