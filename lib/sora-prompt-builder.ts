@@ -14,6 +14,17 @@ interface WebsiteData {
   };
 }
 
+// Map video aesthetic style to detailed description
+function getAestheticDescription(style: string): string {
+  const aesthetics: Record<string, string> = {
+    animated: 'Product Explainer - Clean, animated graphics with smooth motion. Modern UI elements, clear typography, graphic overlays. Think explainer video style with animated icons and text.',
+    cinematic: 'Real-World Cinematic - Authentic real-world footage with cinematic quality. Natural environments, real people, film-like color grading. Documentary meets commercial photography style.',
+    minimalist: 'Editorial Minimalist - Clean, simple compositions with lots of negative space. Monochromatic or limited color palette. Magazine editorial photography style with sophisticated simplicity.',
+    analog: 'Retro Analog - Vintage film aesthetic with grain, warm tones, and nostalgic feel. Film camera look with slight imperfections. 35mm film photography vibe with retro color grading.'
+  };
+  return aesthetics[style] || aesthetics.animated;
+}
+
 interface StylePreset {
   name: string;
   duration: number;
@@ -87,9 +98,10 @@ export async function buildSoraPrompt(params: {
   stylePreset: string;
   customInstructions?: string;
   actualDuration?: number;  // Actual duration to request from Sora (overrides preset)
+  videoStyle?: string;
 }): Promise<string> {
 
-  const { websiteData, stylePreset, customInstructions, actualDuration } = params;
+  const { websiteData, stylePreset, customInstructions, actualDuration, videoStyle } = params;
   const preset = STYLE_PRESETS[stylePreset] || STYLE_PRESETS['product-demo'];
 
   // Use actualDuration if provided (for Sora API limits), otherwise use preset duration
@@ -158,6 +170,12 @@ VOICEOVER GUIDANCE:
 ${videoDuration <= 12 ? `- For ${videoDuration}s: Consider using just a single powerful tagline (5-8 words) rather than full narration` : ''}
 
 ${customInstructions ? `SPECIAL INSTRUCTIONS:\n${customInstructions}\n` : ''}
+${videoStyle ? `
+VIDEO AESTHETIC STYLE:
+${getAestheticDescription(videoStyle)}
+- Apply this visual aesthetic throughout the entire video
+- Balance aesthetic style with brand identity - both must be clearly visible
+` : ''}
 Technical requirements:
 - Aspect ratio: 16:9
 - Resolution: 1080p

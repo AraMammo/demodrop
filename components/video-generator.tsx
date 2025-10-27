@@ -61,6 +61,7 @@ const PHASES: Record<string, PhaseInfo> = {
 export function VideoGenerator() {
   const [websiteUrl, setWebsiteUrl] = useState("")
   const [stylePreset, setStylePreset] = useState("product-demo")
+  const [videoStyle, setVideoStyle] = useState("animated")
   const [customInstructions, setCustomInstructions] = useState("")
   const [state, setState] = useState<GenerationState>({
     status: "idle",
@@ -144,6 +145,7 @@ export function VideoGenerator() {
         body: JSON.stringify({
           websiteUrl,
           stylePreset,
+          videoStyle,
           customInstructions,
         }),
       })
@@ -293,6 +295,7 @@ export function VideoGenerator() {
       projectId: null,
     })
     setWebsiteUrl("")
+    setVideoStyle("animated")
     setCustomInstructions("")
   }
 
@@ -394,6 +397,42 @@ export function VideoGenerator() {
                     <SelectItem value="brand-story">Brand Story</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="video-aesthetic" className="text-sm font-medium text-gray-700">
+                  Video Aesthetic
+                </Label>
+                <Select value={videoStyle} onValueChange={setVideoStyle} disabled={state.status === "generating"}>
+                  <SelectTrigger id="video-aesthetic" className="h-12 w-full rounded-lg border border-gray-200 bg-white text-sm focus:ring-1 focus:ring-gray-400">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="animated">
+                      <span className="flex items-center gap-2">
+                        🎨 Product Explainer
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="cinematic">
+                      <span className="flex items-center gap-2">
+                        📷 Real-World
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="minimalist">
+                      <span className="flex items-center gap-2">
+                        📰 Editorial
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="analog">
+                      <span className="flex items-center gap-2">
+                        📼 Retro
+                      </span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-500">
+                  Choose the overall visual mood of your demo video.
+                </p>
               </div>
 
               <div className="space-y-2">

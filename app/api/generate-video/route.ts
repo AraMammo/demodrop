@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { websiteUrl, stylePreset, customInstructions } = body
+    const { websiteUrl, stylePreset, videoStyle, customInstructions } = body
 
     if (!websiteUrl) {
       return NextResponse.json({ error: "Website URL is required" }, { status: 400 })
@@ -57,6 +57,7 @@ export async function POST(req: NextRequest) {
       userId,
       websiteUrl,
       stylePreset,
+      videoStyle,
       customInstructions,
       status: "scraping",
       createdAt: Date.now(),
@@ -85,6 +86,7 @@ export async function POST(req: NextRequest) {
           projectId,
           websiteUrl,
           stylePreset,
+          videoStyle,
           customInstructions,
         }),
       })

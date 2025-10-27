@@ -5,6 +5,7 @@ export interface Project {
   userId?: string
   websiteUrl: string
   stylePreset: string
+  videoStyle?: string
   customInstructions?: string
   status: "scraping" | "generating" | "completed" | "failed"
   progress?: number
@@ -45,6 +46,7 @@ export async function createProject(project: Project) {
       user_id: project.userId || null,
       website_url: project.websiteUrl,
       style_preset: project.stylePreset,
+      video_style: project.videoStyle || null,
       custom_instructions: project.customInstructions || null,
       status: project.status,
       progress: project.progress || 0,

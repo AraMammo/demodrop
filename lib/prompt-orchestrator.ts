@@ -12,6 +12,17 @@ function getOpenAI() {
   return openai;
 }
 
+// Map video aesthetic style to detailed description
+function getAestheticDescription(style: string): string {
+  const aesthetics: Record<string, string> = {
+    animated: 'Product Explainer - Clean, animated graphics with smooth motion. Modern UI elements, clear typography, graphic overlays. Think explainer video style with animated icons and text.',
+    cinematic: 'Real-World Cinematic - Authentic real-world footage with cinematic quality. Natural environments, real people, film-like color grading. Documentary meets commercial photography style.',
+    minimalist: 'Editorial Minimalist - Clean, simple compositions with lots of negative space. Monochromatic or limited color palette. Magazine editorial photography style with sophisticated simplicity.',
+    analog: 'Retro Analog - Vintage film aesthetic with grain, warm tones, and nostalgic feel. Film camera look with slight imperfections. 35mm film photography vibe with retro color grading.'
+  };
+  return aesthetics[style] || aesthetics.animated;
+}
+
 interface OrchestrationInput {
   websiteData: {
     title: string;
@@ -377,7 +388,8 @@ export async function createProductionPrompt(
   websiteData: any,
   stylePreset: any,
   userInstructions?: string,
-  duration: number = 30
+  duration: number = 30,
+  videoStyle?: string
 ): Promise<string> {
   
   // Step 1: AI orchestration
@@ -413,6 +425,10 @@ Technical Specifications:
 - Aspect Ratio: ${orchestrated.technicalSpecs.aspectRatio}
 - Resolution: ${orchestrated.technicalSpecs.resolution}
 - Frame Rate: ${orchestrated.technicalSpecs.framerate}
+${videoStyle ? `
+Video Aesthetic Style: ${getAestheticDescription(videoStyle)}
+- Apply this visual aesthetic throughout the entire video
+- Balance aesthetic style with brand identity - both must be clearly visible` : ''}
 
 CRITICAL: This video must feel unique to ${websiteData.title}.
 - Use ONLY brand colors: ${websiteData.brand.colors.join(', ')}

@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     console.log('[process-video] Request received');
     const body = await req.json();
     projectId = body.projectId;
-    const { websiteUrl, stylePreset, customInstructions } = body;
+    const { websiteUrl, stylePreset, videoStyle, customInstructions } = body;
 
     console.log('[process-video] Processing project:', projectId, 'URL:', websiteUrl);
 
@@ -95,7 +95,8 @@ export async function POST(req: NextRequest) {
         websiteData,
         orchestratorPreset,
         customInstructions,
-        actualDurationSeconds  // Use actual Sora duration (4, 8, or 12)
+        actualDurationSeconds,  // Use actual Sora duration (4, 8, or 12)
+        videoStyle
       );
 
       console.log('[process-video] AI-orchestrated prompt created for', actualDurationSeconds, 'seconds');
@@ -120,6 +121,7 @@ export async function POST(req: NextRequest) {
         stylePreset,
         customInstructions,
         actualDuration: actualDurationSeconds,  // Pass actual duration to fallback too
+        videoStyle,
       });
     }
 
