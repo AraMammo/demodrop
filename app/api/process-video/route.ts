@@ -56,6 +56,18 @@ export async function POST(req: NextRequest) {
     await updateProject(projectId, { status: 'generating', progress: 20 });
     
     const preset = STYLE_PRESETS[stylePreset];
+
+    // Map preset duration to valid Sora durations FIRST
+    // Sora 2 supports: 4, 8, 12 seconds (standard) or up to 15 seconds (all users)
+    const mapDurationToSora = (duration: number): '4' | '8' | '12' => {
+      if (duration <= 4) return '4';
+      if (duration <= 8) return '8';
+      return '12'; // Max for standard API (15s may be available but using 12s for reliability)
+    };
+
+    const actualSoraDuration = mapDurationToSora(preset.duration);
+    const actualDurationSeconds = parseInt(actualSoraDuration);
+
     let prompt;
 
     try {
@@ -67,24 +79,25 @@ export async function POST(req: NextRequest) {
         aesthetic: preset.visual_aesthetic,
       };
 
-      // Use AI orchestrator to create production-quality, unique prompt
+      // Use AI orchestrator with ACTUAL Sora duration, not preset duration
       prompt = await createProductionPrompt(
         websiteData,
         orchestratorPreset,
         customInstructions,
-        preset.duration
+        actualDurationSeconds  // Use actual Sora duration (4, 8, or 12)
       );
-      
-      console.log('AI-orchestrated prompt created');
-      
+
+      console.log('AI-orchestrated prompt created for', actualDurationSeconds, 'seconds');
+
     } catch (orchestrationError) {
       console.log('Orchestration failed, falling back to basic prompt:', orchestrationError);
-      
+
       // Fallback to basic prompt if orchestrator fails
       prompt = await buildSoraPrompt({
         websiteData,
         stylePreset,
         customInstructions,
+        actualDuration: actualDurationSeconds,  // Pass actual duration to fallback too
       });
     }
 
@@ -94,13 +107,6 @@ export async function POST(req: NextRequest) {
       prompt,
       progress: 30,
     });
-
-    // Map preset duration to valid Sora durations (4, 8, or 12 seconds as strings)
-    const mapDurationToSora = (duration: number): '4' | '8' | '12' => {
-      if (duration <= 4) return '4';
-      if (duration <= 8) return '8';
-      return '12'; // Default to max duration for longer presets
-    };
 
     let soraJob;
     try {

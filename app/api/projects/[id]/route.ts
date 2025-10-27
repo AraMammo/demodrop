@@ -9,15 +9,32 @@ export async function GET(
     const projectId = params.id;
     
     const project = await getProject(projectId);
-    
+
     if (!project) {
       return NextResponse.json(
         { error: 'Project not found' },
         { status: 404 }
       );
     }
-    
-    return NextResponse.json(project);
+
+    // Transform snake_case to camelCase for frontend
+    const transformedProject = {
+      id: project.id,
+      userId: project.user_id,
+      websiteUrl: project.website_url,
+      stylePreset: project.style_preset,
+      customInstructions: project.custom_instructions,
+      status: project.status,
+      progress: project.progress,
+      prompt: project.prompt,
+      soraJobId: project.sora_job_id,
+      videoUrl: project.video_url,
+      error: project.error,
+      createdAt: project.created_at,
+      completedAt: project.completed_at,
+    };
+
+    return NextResponse.json(transformedProject);
     
   } catch (error) {
     console.error('Get project error:', error);

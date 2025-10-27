@@ -79,19 +79,23 @@ export async function buildSoraPrompt(params: {
   websiteData: WebsiteData;
   stylePreset: string;
   customInstructions?: string;
+  actualDuration?: number;  // Actual duration to request from Sora (overrides preset)
 }): Promise<string> {
-  
-  const { websiteData, stylePreset, customInstructions } = params;
+
+  const { websiteData, stylePreset, customInstructions, actualDuration } = params;
   const preset = STYLE_PRESETS[stylePreset] || STYLE_PRESETS['product-demo'];
-  
+
+  // Use actualDuration if provided (for Sora API limits), otherwise use preset duration
+  const videoDuration = actualDuration || preset.duration;
+
   const industry = classifyIndustry(websiteData);
   const audience = inferAudience(websiteData);
-  
+
   const businessName = websiteData.title || 'Your Business';
   const valueProp = websiteData.heroText || websiteData.metaDescription || 'Innovative solutions';
   const features = websiteData.features.slice(0, 3);
-  
-  const prompt = `Create a ${preset.duration}-second professional demo video for ${businessName}.
+
+  const prompt = `Create a ${videoDuration}-second professional demo video for ${businessName}.
 
 BUSINESS CONTEXT:
 - Industry: ${industry}
@@ -108,7 +112,7 @@ VISUAL STYLE:
 - Tone: ${preset.tone}
 
 SCENE STRUCTURE:
-${preset.scene_structure}
+${generateSceneStructure(videoDuration, preset.pacing_style)}
 
 ${customInstructions ? `SPECIAL INSTRUCTIONS:\n${customInstructions}\n` : ''}
 Technical requirements:
@@ -119,6 +123,35 @@ Technical requirements:
 - Professional polish`;
 
   return prompt;
+}
+
+function generateSceneStructure(duration: number, pacing: string): string {
+  // Generate appropriate scene structure based on actual video duration
+  if (duration <= 4) {
+    return `Single scene: Quick product showcase with key value proposition (0-4s)`;
+  } else if (duration <= 8) {
+    return `Scene 1 (0-3s): Problem statement or hook
+Scene 2 (3-6s): Solution/product reveal
+Scene 3 (6-8s): Key benefit or call to action`;
+  } else if (duration <= 12) {
+    return `Scene 1 (0-3s): Hook - establish the problem or context
+Scene 2 (3-7s): Solution - show product/service in action
+Scene 3 (7-10s): Benefit - demonstrate key value
+Scene 4 (10-12s): Outcome - satisfied result or next step`;
+  } else if (duration <= 20) {
+    return `Scene 1 (0-4s): Hook - problem visualization
+Scene 2 (4-9s): Product introduction and key feature
+Scene 3 (9-14s): Secondary feature or use case
+Scene 4 (14-17s): Customer benefit visualization
+Scene 5 (17-20s): Call to action or brand moment`;
+  } else {
+    // For longer videos (if API supports them in the future)
+    return `Scene 1 (0-6s): Problem context with authentic scenario
+Scene 2 (6-12s): Product interface and primary features
+Scene 3 (12-18s): Secondary features or integrations
+Scene 4 (18-24s): Results and customer satisfaction
+Scene 5 (24-${duration}s): Brand story and call to action`;
+  }
 }
 
 function classifyIndustry(data: WebsiteData): string {
