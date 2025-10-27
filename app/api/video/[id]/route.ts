@@ -26,7 +26,24 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     }
 
-    return NextResponse.json({ video: project })
+    // Transform snake_case to camelCase for frontend
+    const video = {
+      id: project.id,
+      userId: project.user_id,
+      websiteUrl: project.website_url,
+      stylePreset: project.style_preset,
+      customInstructions: project.custom_instructions,
+      status: project.status,
+      progress: project.progress,
+      prompt: project.prompt,
+      soraJobId: project.sora_job_id,
+      videoUrl: project.video_url,
+      error: project.error,
+      createdAt: project.created_at,
+      completedAt: project.completed_at,
+    }
+
+    return NextResponse.json({ video })
   } catch (error) {
     console.error("Get video error:", error)
     return NextResponse.json({ error: "Failed to fetch video" }, { status: 500 })

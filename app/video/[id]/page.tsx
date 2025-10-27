@@ -162,9 +162,9 @@ export default function VideoDetailPage() {
 
           <div className="p-6">
             <div className="mb-6">
-              <h1 className="text-2xl font-bold text-foreground mb-2">{video.websiteUrl}</h1>
+              <h1 className="text-2xl font-bold text-foreground mb-2">{video.websiteUrl || "Untitled"}</h1>
               <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                <span>Style: {video.stylePreset.replace(/-/g, " ")}</span>
+                <span>Style: {video.stylePreset?.replace(/-/g, " ") || "default"}</span>
                 <span>Status: {statusLabels[video.status as keyof typeof statusLabels] || video.status}</span>
                 <span>Created {formatDistanceToNow(new Date(video.createdAt), { addSuffix: true })}</span>
                 {video.completedAt && (
