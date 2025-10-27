@@ -19,6 +19,12 @@ interface OrchestrationInput {
     features: string[];
     industry: string;
     targetAudience: string;
+    brand: {
+      colors: string[];
+      tone: string;
+      visualStyle: string;
+      keyMessage: string;
+    };
   };
   stylePreset: {
     name: string;
