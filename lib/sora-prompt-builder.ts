@@ -10,6 +10,7 @@ interface WebsiteData {
     tone: string;
     visualStyle: string;
     keyMessage: string;
+    logoUrl?: string;
   };
 }
 
