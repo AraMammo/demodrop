@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
     const actualSoraDuration = mapDurationToSora(preset.duration);
     const actualDurationSeconds = parseInt(actualSoraDuration);
 
-    let prompt;
+    let prompt: string;
 
     try {
       // Transform preset to match orchestrator expectations
