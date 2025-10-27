@@ -5,6 +5,12 @@ interface WebsiteData {
   metaDescription?: string;
   industry: string;
   targetAudience: string;
+  brand: {
+    colors: string[];
+    tone: string;
+    visualStyle: string;
+    keyMessage: string;
+  };
 }
 
 interface StylePreset {
