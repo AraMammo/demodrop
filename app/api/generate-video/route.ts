@@ -63,12 +63,18 @@ export async function POST(req: NextRequest) {
     })
 
     // Trigger async processing (fire-and-forget)
-    const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+    // Use req.headers to get the actual host
+    const protocol = req.headers.get('x-forwarded-proto') || 'https'
+    const host = req.headers.get('host') || req.headers.get('x-forwarded-host')
+
+    const baseUrl = host
+      ? `${protocol}://${host}`
+      : (process.env.NEXT_PUBLIC_APP_URL ||
+         (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"))
+
     const processUrl = `${baseUrl}/api/process-video`
 
-    console.log('[generate-video] Triggering background process:', processUrl)
+    console.log('[generate-video] Triggering background process:', processUrl, 'from host:', host)
 
     fetch(processUrl, {
       method: "POST",
