@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid"
 import { createProject, checkUserQuota, getUser, createUser } from "@/lib/db"
 import { STYLE_PRESETS } from "@/lib/sora-prompt-builder"
 
-export const maxDuration = 60
+export const maxDuration = 300 // Match process-video timeout
 
 export async function POST(req: NextRequest) {
   try {
@@ -76,27 +76,29 @@ export async function POST(req: NextRequest) {
 
     console.log('[generate-video] Triggering background process:', processUrl, 'from host:', host)
 
-    fetch(processUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        projectId,
-        websiteUrl,
-        stylePreset,
-        customInstructions,
-      }),
-    })
-      .then(res => {
-        console.log('[generate-video] Background process response:', res.status)
-        if (!res.ok) {
-          return res.text().then(text => {
-            console.error('[generate-video] Background process failed:', text)
-          })
-        }
+    // Initiate the background process and wait for it to start (but not complete)
+    try {
+      const response = await fetch(processUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId,
+          websiteUrl,
+          stylePreset,
+          customInstructions,
+        }),
       })
-      .catch(err => {
-        console.error('[generate-video] Background process error:', err)
-      })
+
+      console.log('[generate-video] Background process initiated, status:', response.status)
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('[generate-video] Background process returned error:', errorText)
+      }
+    } catch (err) {
+      console.error('[generate-video] Background process error:', err)
+      // Don't fail the whole request, just log it
+    }
 
     return NextResponse.json({
       projectId,
