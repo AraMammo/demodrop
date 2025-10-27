@@ -1,3 +1,6 @@
+import type { ProductUnderstanding } from './product-analyzer';
+import type { ParsedContent } from './content-parser';
+
 interface WebsiteData {
   title: string;
   heroText: string;
@@ -12,6 +15,9 @@ interface WebsiteData {
     keyMessage: string;  // Primary value proposition/message
     logoUrl?: string;    // URL to company logo (if found)
   };
+  // NEW: Rich understanding from AI analysis
+  productUnderstanding?: ProductUnderstanding;
+  parsedContent?: ParsedContent;
 }
 
 interface DumplingAIResponse {
@@ -56,18 +62,44 @@ export async function scrapeWebsite(url: string): Promise<WebsiteData> {
 
     const data: DumplingAIResponse = await response.json();
     console.log('[dumpling] Successfully scraped. Title:', data.title);
-    console.log('[dumpling] Metadata received:', JSON.stringify(data.metadata, null, 2));
+    console.log('[dumpling] Content length:', data.content.length, 'characters');
 
-    // Extract meaningful data from the markdown content
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // LAYER 1: PARSE CONTENT INTO STRUCTURED SECTIONS
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    const { parseMarkdownContent } = await import('./content-parser');
+    const parsedContent = parseMarkdownContent(data.content, data.metadata);
+
+    console.log('[dumpling] Content parsed - features:', parsedContent.features.length,
+                'steps:', parsedContent.howItWorks.steps.length,
+                'use cases:', parsedContent.useCases.length);
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // LAYER 2: AI ANALYSIS FOR DEEP UNDERSTANDING
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    const { analyzeProduct } = await import('./product-analyzer');
     const title = data.title || extractTitleFromUrl(url);
-    const heroText = extractHeroText(data.content);
-    const features = extractFeaturesFromMarkdown(data.content);
-    // Try to get meta description from metadata first, then fall back to extracting from content
-    const description = data.metadata?.description || data.metadata?.['og:description'] || extractDescription(data.content);
+    const description = data.metadata?.description || data.metadata?.['og:description'] || parsedContent.hero.description;
 
-    // Infer industry and audience from content
-    // Use more content for better analysis (first 8000 chars instead of 2000)
-    const allText = `${title} ${heroText} ${data.content.substring(0, 8000)}`;
+    let productUnderstanding;
+    try {
+      productUnderstanding = await analyzeProduct(parsedContent, {
+        title,
+        url,
+        metaDescription: description
+      });
+      console.log('[dumpling] AI analysis complete - what it does:', productUnderstanding.whatItDoes.substring(0, 100));
+    } catch (analysisError) {
+      console.error('[dumpling] AI analysis failed, continuing without it:', analysisError);
+    }
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // LAYER 3: EXTRACT TRADITIONAL DATA (for backward compatibility)
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    const heroText = parsedContent.hero.subheading || parsedContent.hero.heading;
+    const features = parsedContent.features.map(f => f.title);
+
+    const allText = `${title} ${heroText} ${description} ${data.content.substring(0, 8000)}`;
     const industry = inferIndustry(title, heroText, description);
     const targetAudience = inferTargetAudience(title, heroText, description);
 
@@ -75,10 +107,10 @@ export async function scrapeWebsite(url: string): Promise<WebsiteData> {
     const brandTone = inferBrandTone(allText);
     const brandVisualStyle = inferVisualStyle(allText, industry);
     const brandColors = inferBrandColors(industry, brandVisualStyle);
-    const keyMessage = heroText || description || `${title}'s innovative solutions`;
+    const keyMessage = productUnderstanding?.whatItDoes || heroText || description || `${title}'s innovative solutions`;
     const logoUrl = extractLogoUrl(data.content, url);
 
-    const result = {
+    const result: WebsiteData = {
       title,
       heroText,
       features,
@@ -92,9 +124,11 @@ export async function scrapeWebsite(url: string): Promise<WebsiteData> {
         keyMessage: keyMessage,
         logoUrl: logoUrl,
       },
+      productUnderstanding,
+      parsedContent,
     };
 
-    console.log('[dumpling] Extracted data:', JSON.stringify(result, null, 2));
+    console.log('[dumpling] ✅ Complete extraction with AI understanding');
 
     return result;
   } catch (error) {
@@ -243,7 +277,12 @@ function extractFeaturesFromMarkdown(markdown: string): string[] {
 function inferIndustry(title: string, heroText: string, description: string): string {
   const text = `${title} ${heroText} ${description}`.toLowerCase();
 
-  if (text.match(/\b(software|saas|app|tech|digital|cloud|api)\b/)) return 'Technology / SaaS';
+  // AI/ML specific - check FIRST before general tech
+  if (text.match(/\b(ai|artificial intelligence|machine learning|ml|llm|gpt|generative)\b/)) return 'AI / Machine Learning';
+  // Content creation platforms
+  if (text.match(/\b(content creation|content platform|blog|social media|publishing)\b/)) return 'Content Creation Platform';
+  // General tech/SaaS
+  if (text.match(/\b(software|saas|app|platform|digital|cloud|api)\b/)) return 'Technology / SaaS';
   if (text.match(/\b(ecommerce|shop|store|retail|marketplace)\b/)) return 'E-commerce / Retail';
   if (text.match(/\b(finance|fintech|banking|payment|investment)\b/)) return 'Finance / FinTech';
   if (text.match(/\b(health|medical|healthcare|wellness|fitness)\b/)) return 'Healthcare / Wellness';
@@ -252,7 +291,7 @@ function inferIndustry(title: string, heroText: string, description: string): st
   if (text.match(/\b(marketing|advertising|agency|creative)\b/)) return 'Marketing / Agency';
   if (text.match(/\b(consulting|advisory|professional services)\b/)) return 'Consulting / Professional Services';
 
-  return 'Professional Services';
+  return 'Technology / SaaS'; // Default to tech, not professional services
 }
 
 function inferTargetAudience(title: string, heroText: string, description: string): string {

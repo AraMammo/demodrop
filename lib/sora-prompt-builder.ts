@@ -117,7 +117,32 @@ export async function buildSoraPrompt(params: {
   const features = websiteData.features.slice(0, featureCount);
   const brand = websiteData.brand;
 
+  // Use AI-generated understanding if available, otherwise fall back to meta description
+  const whatItDoes = websiteData.productUnderstanding?.whatItDoes || websiteData.metaDescription;
+  const workflow = websiteData.productUnderstanding?.userWorkflow;
+  const enrichedFeatures = websiteData.productUnderstanding?.enrichedFeatures;
+
   const prompt = `Create a ${videoDuration}-second professional demo video for ${businessName}.
+${whatItDoes ? `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 WHAT THIS PRODUCT ACTUALLY DOES (MUST SHOW THIS):
+"${whatItDoes}"
+
+${workflow ? `USER WORKFLOW TO VISUALIZE:
+1. ${workflow.step1}
+2. ${workflow.step2}
+3. ${workflow.step3}
+${workflow.step4 ? `4. ${workflow.step4}` : ''}
+
+Visual Guide: ${workflow.visualDescription}` : ''}
+
+${websiteData.productUnderstanding?.coreProblemSolved ? `
+PROBLEM BEING SOLVED: ${websiteData.productUnderstanding.coreProblemSolved}
+Show this problem visually, then show how the product solves it.` : ''}
+
+THE VIDEO MUST DEMONSTRATE THIS EXACT WORKFLOW AND TRANSFORMATION.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+` : ''}
 
 CRITICAL TIMING CONSTRAINT:
 - Total video duration: EXACTLY ${videoDuration} seconds
@@ -137,17 +162,22 @@ ${videoDuration <= 12 ? `
 
 BUSINESS CONTEXT:
 - Industry: ${industry}
-- Primary offering: ${valueProp}
-- Key message: ${brand.keyMessage}
 - Target audience: ${audience}
-${websiteData.metaDescription ? `
-WHAT THIS PRODUCT ACTUALLY DOES:
-"${websiteData.metaDescription}"
-^ Use this description to understand the product's core functionality. Show THIS in the video.` : ''}
+- Primary value proposition: ${valueProp}
+- Brand key message: ${brand.keyMessage}
 
 KEY FEATURES TO SHOWCASE (demonstrate these visually):
-${features.map(f => `- ${f}`).join('\n')}
-${videoDuration <= 12 ? `
+${enrichedFeatures && enrichedFeatures.length > 0 ?
+  enrichedFeatures.map(f => `- ${f.name}: ${f.whatItDoes}
+  Benefit: ${f.userBenefit}
+  Visual Concept: ${f.visualConcept}`).join('\n') :
+  features.map(f => `- ${f}`).join('\n')
+}
+${videoDuration <= 12 && enrichedFeatures && enrichedFeatures[0] ? `
+NOTE: For ${videoDuration}-second videos, focus on "${enrichedFeatures[0].name}":
+- What it does: ${enrichedFeatures[0].whatItDoes}
+- Show this visually: ${enrichedFeatures[0].visualConcept}
+Quality over quantity - demonstrate ONE feature exceptionally well.` : videoDuration <= 12 ? `
 NOTE: For ${videoDuration}-second videos, focus on showcasing ONE primary feature ("${features[0]}") exceptionally well rather than cramming multiple features. Show exactly what this feature DOES and the transformation it creates.` : ''}
 
 BRAND IDENTITY (CRITICAL - MUST BE ON-BRAND):
@@ -155,7 +185,7 @@ BRAND IDENTITY (CRITICAL - MUST BE ON-BRAND):
 - Brand tone: ${brand.tone} - Match this voice in any narration
 - Visual style: ${brand.visualStyle} - Ensure aesthetic matches this style
 - Key message: ${brand.keyMessage} - Center the video around this core message
-${brand.logoUrl ? `- Company logo: USE THE ACTUAL LOGO from the website (visible at ${brand.logoUrl}) - DO NOT create or generate a different logo` : '- Logo: Use simple, recognizable brand mark based on company name'}
+${brand.logoUrl ? `- Company logo: Show the actual ${businessName} logo from ${brand.logoUrl}` : `- Branding: Use ${businessName} text/wordmark in brand colors (${brand.colors[0]}) - do NOT attempt to generate or create a logo`}
 
 VISUAL STYLE:
 - Aesthetic: ${preset.visual_aesthetic} combined with ${brand.visualStyle}
@@ -164,7 +194,15 @@ VISUAL STYLE:
 - Tone: ${preset.tone} with ${brand.tone} influence
 
 SCENE STRUCTURE:
-${generateSceneStructure(videoDuration, preset.pacing_style, features, businessName)}
+${generateSceneStructure(videoDuration, preset.pacing_style, features, businessName, websiteData.productUnderstanding)}
+
+${websiteData.productUnderstanding?.videoGuidance ? `
+VIDEO-SPECIFIC GUIDANCE FROM AI ANALYSIS:
+- Opening Hook: ${websiteData.productUnderstanding.videoGuidance.openingHook}
+- Key Visuals MUST Include: ${websiteData.productUnderstanding.videoGuidance.keyVisualsToShow.join(', ')}
+- Emotional Tone: ${websiteData.productUnderstanding.videoGuidance.emotionalTone}
+- CRITICAL CALLOUT: ${websiteData.productUnderstanding.videoGuidance.callout}
+` : ''}
 
 VOICEOVER GUIDANCE:
 - Keep narration concise and impactful
@@ -197,22 +235,27 @@ function getWordCountForDuration(seconds: number): number {
   return Math.floor(seconds * 2.5 * 0.8);
 }
 
-function generateSceneStructure(duration: number, pacing: string, features: string[], businessName: string): string {
-  // Generate appropriate scene structure based on actual video duration
-  const feature1 = features[0] || 'core functionality';
-  const feature2 = features[1] || 'key benefit';
+function generateSceneStructure(duration: number, pacing: string, features: string[], businessName: string, productUnderstanding?: any): string {
+  // Use AI-generated workflow if available
+  const workflow = productUnderstanding?.userWorkflow;
+  const enrichedFeatures = productUnderstanding?.enrichedFeatures;
+
+  // Get feature descriptions
+  const feature1 = enrichedFeatures?.[0]?.whatItDoes || features[0] || 'core functionality';
+  const feature2 = enrichedFeatures?.[1]?.whatItDoes || features[1] || 'key benefit';
+  const visualConcept1 = enrichedFeatures?.[0]?.visualConcept;
 
   if (duration <= 4) {
-    return `Single scene (0-4s): Show ${businessName} solving the problem - demonstrate "${feature1}" in one quick, powerful visual`;
+    return `Single scene (0-4s): ${workflow?.visualDescription || `Show ${businessName} solving the problem - demonstrate "${feature1}" in one quick, powerful visual`}`;
   } else if (duration <= 8) {
-    return `Scene 1 (0-3s): Problem/need that ${businessName} solves - establish context
-Scene 2 (3-6s): Demonstrate "${feature1}" in action - show what it DOES
-Scene 3 (6-8s): Result/benefit - clear outcome from using this feature`;
+    return `Scene 1 (0-3s): ${workflow?.step1 || `Problem/need that ${businessName} solves - establish context`}
+Scene 2 (3-6s): ${workflow?.step2 || `Demonstrate "${feature1}" in action - show what it DOES`}
+Scene 3 (6-8s): ${workflow?.step3 || 'Result/benefit - clear outcome from using this feature'}`;
   } else if (duration <= 12) {
-    return `Scene 1 (0-3s): POWERFUL HOOK - Show ${businessName} brand (logo/colors) + the specific problem this solves. Make it instantly recognizable.
-Scene 2 (3-7s): SOLUTION IN ACTION - Demonstrate "${feature1}" working. Don't just show the interface, show the TRANSFORMATION or result it creates.
-Scene 3 (7-10s): EMOTIONAL PAYOFF - User seeing tangible results from using this feature. Real satisfaction, visible outcome, clear benefit delivered.
-Scene 4 (10-12s): BRAND MOMENT - ${businessName} logo/colors with brief hint of "${feature2}" to tease additional value. Memorable closing.`;
+    return `Scene 1 (0-3s): POWERFUL HOOK - ${workflow?.step1 || `Show ${businessName} brand (logo/colors) + the specific problem this solves`}. Make it instantly recognizable.
+Scene 2 (3-7s): SOLUTION IN ACTION - ${workflow?.step2 || `Demonstrate "${feature1}" working`}. ${visualConcept1 || 'Show the TRANSFORMATION or result it creates, not just the interface'}.
+Scene 3 (7-10s): EMOTIONAL PAYOFF - ${workflow?.step3 || 'User seeing tangible results from using this feature'}. Real satisfaction, visible outcome, clear benefit delivered.
+Scene 4 (10-12s): BRAND MOMENT - ${workflow?.step4 || `${businessName} logo/colors with brief hint of "${feature2}"`}. Memorable closing.`;
   } else if (duration <= 20) {
     return `Scene 1 (0-4s): Hook - show the specific problem that ${businessName} addresses
 Scene 2 (4-9s): Demonstrate "${feature1}" - show exactly what this does and how

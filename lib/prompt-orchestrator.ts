@@ -97,11 +97,19 @@ Return a JSON object with the enhanced prompt and production details.`;
 
 **Business:**
 - Name: ${input.websiteData.title}
-- Value Proposition: ${input.websiteData.heroText}
-- Key Message: ${input.websiteData.brand.keyMessage}
-- Key Features: ${input.websiteData.features.join(', ')}
 - Industry: ${input.websiteData.industry}
 - Target Audience: ${input.websiteData.targetAudience}
+
+**WHAT THIS PRODUCT ACTUALLY DOES (THIS IS CRITICAL):**
+${input.websiteData.metaDescription ? `"${input.websiteData.metaDescription}"` : input.websiteData.heroText}
+
+This description above is the CORE of what to show. The video must demonstrate this.
+
+**Key Features to Showcase:**
+${input.websiteData.features.map((f: string, i: number) => `${i + 1}. ${f}`).join('\n')}
+
+**Brand Message:**
+"${input.websiteData.brand.keyMessage}"
 
 **Brand Identity (CRITICAL - Video Must Be On-Brand):**
 - Brand Colors: ${input.websiteData.brand.colors.join(', ')} - MUST use these exact colors
@@ -207,6 +215,14 @@ function buildFallbackPrompt(input: OrchestrationInput): OrchestratedPrompt {
 
   return {
     enhancedPrompt: `Create a ${input.duration}-second cinematic demo video for ${businessName}, a ${industry} company.
+${input.websiteData.metaDescription ? `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 WHAT THIS PRODUCT ACTUALLY DOES (MUST SHOW THIS):
+"${input.websiteData.metaDescription}"
+
+The video MUST visually demonstrate this exact functionality.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+` : ''}
 
 CRITICAL TIMING CONSTRAINT:
 - Duration: EXACTLY ${input.duration} seconds
@@ -220,6 +236,7 @@ BRAND IDENTITY (MUST BE ON-BRAND):
 - Brand Tone: ${brand.tone}
 - Visual Style: ${brand.visualStyle}
 - Key Message: ${brand.keyMessage}
+${brand.logoUrl ? `- Logo: Show actual ${businessName} logo` : `- Branding: Show ${businessName} text/wordmark (do NOT generate logos)`}
 
 Visual Style: ${input.stylePreset.aesthetic} with ${brand.visualStyle}
 Emotional Tone: ${tone} with ${brand.tone}
@@ -231,13 +248,15 @@ ${input.websiteData.features.slice(0, 3).map((f: string, i: number) => `${i + 1}
 
 Scene Structure (${input.duration}s total):
 ${input.duration <= 12 ? `
-- Scene 1 (0-3s): Opening hook showing the problem/need that ${businessName} solves
-- Scene 2 (3-7s): Demonstrate PRIMARY feature: "${input.websiteData.features[0] || 'core functionality'}" in action
-- Scene 3 (7-10s): Show clear benefit and result
-- Scene 4 (10-12s): Brand moment with logo and key message` : `
-- Opening (0-${Math.floor(input.duration * 0.25)}s): Establish the problem with authentic human frustration
-- Middle (${Math.floor(input.duration * 0.25)}-${Math.floor(input.duration * 0.75)}s): Show product solving problem with specific features: ${input.websiteData.features.slice(0, 2).join(', ')}
-- Closing (${Math.floor(input.duration * 0.75)}-${input.duration}s): Real satisfaction moment showing tangible results`}
+- Scene 1 (0-3s): Show the problem/need - ${input.websiteData.metaDescription ? 'why people need what this product does' : 'establish context'}
+- Scene 2 (3-7s): DEMONSTRATE in action: ${input.websiteData.metaDescription ? input.websiteData.metaDescription.split('that')[1]?.split('.')[0] || input.websiteData.features[0] : input.websiteData.features[0]}
+  ^ Show the ACTUAL transformation/process, not just the interface
+- Scene 3 (7-10s): Show the result/outcome - what the user gets
+- Scene 4 (10-12s): ${businessName} branding with key message` : `
+- Opening (0-${Math.floor(input.duration * 0.25)}s): Establish the problem/need with real scenario
+- Middle (${Math.floor(input.duration * 0.25)}-${Math.floor(input.duration * 0.75)}s): Demonstrate: ${input.websiteData.metaDescription || input.websiteData.features.slice(0, 2).join(', ')}
+  ^ Show the transformation happening, not just UI
+- Closing (${Math.floor(input.duration * 0.75)}-${input.duration}s): Real results and ${businessName} branding`}
 
 Voiceover Script (Maximum ${maxWords} words):
 - Concise, impactful narration
