@@ -46,6 +46,12 @@ export async function POST(req: NextRequest) {
         heroText: websiteData.heroText?.substring(0, 50),
         featuresCount: websiteData.features?.length,
         industry: websiteData.industry,
+        brand: {
+          colors: websiteData.brand?.colors,
+          tone: websiteData.brand?.tone,
+          visualStyle: websiteData.brand?.visualStyle,
+          keyMessage: websiteData.brand?.keyMessage?.substring(0, 50),
+        },
       });
     } catch (error) {
       console.error('[process-video] Scraping failed:', error);
@@ -93,7 +99,17 @@ export async function POST(req: NextRequest) {
       );
 
       console.log('[process-video] AI-orchestrated prompt created for', actualDurationSeconds, 'seconds');
-      console.log('[process-video] Prompt preview:', prompt.substring(0, 200) + '...');
+      console.log('[process-video] Prompt preview:', prompt.substring(0, 300) + '...');
+
+      // Verify brand data is in the prompt
+      const hasBrandColors = websiteData.brand?.colors?.some(color => prompt.includes(color));
+      const hasBrandTone = prompt.toLowerCase().includes(websiteData.brand?.tone?.toLowerCase() || '');
+      console.log('[process-video] Brand data in prompt:', {
+        hasBrandColors,
+        hasBrandTone,
+        brandColorsUsed: websiteData.brand?.colors,
+        brandToneUsed: websiteData.brand?.tone,
+      });
 
     } catch (orchestrationError) {
       console.log('[process-video] Orchestration failed, falling back to basic prompt:', orchestrationError);
