@@ -80,15 +80,22 @@ Return a JSON object with the enhanced prompt and production details.`;
 **Business:**
 - Name: ${input.websiteData.title}
 - Value Proposition: ${input.websiteData.heroText}
+- Key Message: ${input.websiteData.brand.keyMessage}
 - Key Features: ${input.websiteData.features.join(', ')}
 - Industry: ${input.websiteData.industry}
 - Target Audience: ${input.websiteData.targetAudience}
 
+**Brand Identity (CRITICAL - Video Must Be On-Brand):**
+- Brand Colors: ${input.websiteData.brand.colors.join(', ')} - MUST use these exact colors
+- Brand Tone: ${input.websiteData.brand.tone} - Match this voice
+- Visual Style: ${input.websiteData.brand.visualStyle} - Match this aesthetic
+- This is the ${input.websiteData.title} brand - make it unmistakably theirs
+
 **Style Requirements:**
 - Name: ${input.stylePreset.name}
-- Tone: ${input.stylePreset.tone}
+- Tone: ${input.stylePreset.tone} (combined with brand tone: ${input.websiteData.brand.tone})
 - Pacing: ${input.stylePreset.pacing}
-- Aesthetic: ${input.stylePreset.aesthetic}
+- Aesthetic: ${input.stylePreset.aesthetic} (combined with brand style: ${input.websiteData.brand.visualStyle})
 
 **User's Specific Instructions:**
 ${input.userInstructions || 'None provided - use your expertise to create the most compelling video possible'}
@@ -163,6 +170,7 @@ function buildFallbackPrompt(input: OrchestrationInput): OrchestratedPrompt {
   const industry = input.websiteData.industry;
   const tone = input.stylePreset.tone;
   const maxWords = Math.floor(input.duration * 2.5 * 0.8);
+  const brand = input.websiteData.brand;
 
   return {
     enhancedPrompt: `Create a ${input.duration}-second cinematic demo video for ${businessName}, a ${industry} company.
@@ -173,9 +181,16 @@ CRITICAL TIMING CONSTRAINT:
 - Maximum ${maxWords} words for voiceover (2.5 words/sec with pauses)
 - All scenes and transitions must fit within ${input.duration}-second limit
 
-Visual Style: ${input.stylePreset.aesthetic}
-Emotional Tone: ${tone}
+BRAND IDENTITY (MUST BE ON-BRAND):
+- Brand Colors: ${brand.colors.join(', ')} - Use these exact colors throughout
+- Brand Tone: ${brand.tone}
+- Visual Style: ${brand.visualStyle}
+- Key Message: ${brand.keyMessage}
+
+Visual Style: ${input.stylePreset.aesthetic} with ${brand.visualStyle}
+Emotional Tone: ${tone} with ${brand.tone}
 Pacing: ${input.stylePreset.pacing}
+Color Palette: PRIMARY ${brand.colors[0]}, SECONDARY ${brand.colors[1]}, ACCENT ${brand.colors[2] || brand.colors[0]}
 
 Scene Structure:
 - Opening: Establish the problem with authentic human frustration (not stock footage)
@@ -381,8 +396,13 @@ Technical Specifications:
 - Resolution: ${orchestrated.technicalSpecs.resolution}
 - Frame Rate: ${orchestrated.technicalSpecs.framerate}
 
-CRITICAL: This video must feel unique to this specific company. Avoid any visual elements that could be mistaken for stock footage or generic templates.`;
-  
+CRITICAL: This video must feel unique to ${websiteData.title}.
+- Use ONLY brand colors: ${websiteData.brand.colors.join(', ')}
+- Match brand tone: ${websiteData.brand.tone}
+- Reflect visual style: ${websiteData.brand.visualStyle}
+- Avoid any visual elements that could be mistaken for stock footage or generic templates
+- The video should be immediately recognizable as ${websiteData.title}'s brand`;
+
   // Step 5: Quality check
   const quality = validatePromptQuality(enhancedPrompt);
   

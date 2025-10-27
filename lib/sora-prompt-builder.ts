@@ -94,6 +94,7 @@ export async function buildSoraPrompt(params: {
   const businessName = websiteData.title || 'Your Business';
   const valueProp = websiteData.heroText || websiteData.metaDescription || 'Innovative solutions';
   const features = websiteData.features.slice(0, 3);
+  const brand = websiteData.brand;
 
   const prompt = `Create a ${videoDuration}-second professional demo video for ${businessName}.
 
@@ -107,16 +108,23 @@ CRITICAL TIMING CONSTRAINT:
 BUSINESS CONTEXT:
 - Industry: ${industry}
 - Primary offering: ${valueProp}
+- Key message: ${brand.keyMessage}
 - Target audience: ${audience}
 
 KEY FEATURES TO SHOWCASE:
 ${features.map(f => `- ${f}`).join('\n')}
 
+BRAND IDENTITY (CRITICAL - MUST BE ON-BRAND):
+- Brand colors: ${brand.colors.join(', ')} - USE THESE EXACT COLORS throughout the video
+- Brand tone: ${brand.tone} - Match this voice in any narration
+- Visual style: ${brand.visualStyle} - Ensure aesthetic matches this style
+- Key message: ${brand.keyMessage} - Center the video around this core message
+
 VISUAL STYLE:
-- Aesthetic: ${preset.visual_aesthetic}
-- Color palette: ${preset.color_scheme}
+- Aesthetic: ${preset.visual_aesthetic} combined with ${brand.visualStyle}
+- Color palette: PRIMARY USE ${brand.colors[0]}, SECONDARY ${brand.colors[1]}, ACCENT ${brand.colors[2] || brand.colors[0]}
 - Pacing: ${preset.pacing_style}
-- Tone: ${preset.tone}
+- Tone: ${preset.tone} with ${brand.tone} influence
 
 SCENE STRUCTURE:
 ${generateSceneStructure(videoDuration, preset.pacing_style)}
