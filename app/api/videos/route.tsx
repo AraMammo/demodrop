@@ -57,7 +57,24 @@ export async function GET(req: NextRequest) {
     console.log("[v0] API /videos - Returning", data?.length || 0, "videos")
     // </CHANGE>
 
-    return NextResponse.json({ videos: data || [] })
+    // Transform snake_case to camelCase for frontend
+    const videos = (data || []).map((project: any) => ({
+      id: project.id,
+      userId: project.user_id,
+      websiteUrl: project.website_url,
+      stylePreset: project.style_preset,
+      customInstructions: project.custom_instructions,
+      status: project.status,
+      progress: project.progress,
+      prompt: project.prompt,
+      soraJobId: project.sora_job_id,
+      videoUrl: project.video_url,
+      error: project.error,
+      createdAt: project.created_at,
+      completedAt: project.completed_at,
+    }))
+
+    return NextResponse.json({ videos })
   } catch (error) {
     console.error("[v0] Fetch videos error:", error)
     return NextResponse.json(
