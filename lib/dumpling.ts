@@ -7,26 +7,56 @@ interface WebsiteData {
   targetAudience: string;
 }
 
+interface DumplingAIResponse {
+  title: string;
+  url: string;
+  content: string;
+  metadata?: Record<string, any>;
+}
+
 export async function scrapeWebsite(url: string): Promise<WebsiteData> {
+  const apiKey = process.env.DUMPLING_API;
+
+  if (!apiKey) {
+    console.warn('DUMPLING_API key not found, using fallback scraper');
+    return getFallbackData(url);
+  }
+
   try {
-    const response = await fetch(url);
-    const html = await response.text();
+    console.log('[dumpling] Scraping website with Dumpling AI:', url);
 
-    const titleMatch = html.match(/<title>(.*?)<\/title>/i);
-    const h1Match = html.match(/<h1[^>]*>(.*?)<\/h1>/i);
-    const descMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["'](.*?)["']/i);
+    const response = await fetch('https://app.dumplingai.com/api/v1/scrape', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        url: url,
+        format: 'markdown',
+        cleaned: true,
+        renderJs: true,
+      }),
+    });
 
-    const title = titleMatch?.[1]?.replace(/<[^>]*>/g, '').trim() || 'Business';
-    const heroText = h1Match?.[1]?.replace(/<[^>]*>/g, '').trim() || 'Professional services';
-    const description = descMatch?.[1] || '';
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[dumpling] API error:', response.status, errorText);
+      throw new Error(`Dumpling AI API error: ${response.status}`);
+    }
 
-    // Extract features from the page
-    const features = extractFeatures(html, title, heroText, description);
+    const data: DumplingAIResponse = await response.json();
+    console.log('[dumpling] Successfully scraped. Title:', data.title);
 
-    // Infer industry from content
+    // Extract meaningful data from the markdown content
+    const title = data.title || extractTitleFromUrl(url);
+    const heroText = extractHeroText(data.content);
+    const features = extractFeaturesFromMarkdown(data.content);
+    const description = extractDescription(data.content);
+
+    // Infer industry and audience from content
+    const allText = `${title} ${heroText} ${data.content.substring(0, 1000)}`;
     const industry = inferIndustry(title, heroText, description);
-
-    // Infer target audience from content
     const targetAudience = inferTargetAudience(title, heroText, description);
 
     return {
@@ -38,69 +68,139 @@ export async function scrapeWebsite(url: string): Promise<WebsiteData> {
       targetAudience,
     };
   } catch (error) {
-    const hostname = new URL(url).hostname.replace('www.', '');
-    const formattedName = hostname.split('.')[0].charAt(0).toUpperCase() + hostname.split('.')[0].slice(1);
-    return {
-      title: formattedName,
-      heroText: 'Professional business services',
-      features: ['Quality service', 'Expert team', 'Proven results'],
-      industry: 'Professional Services',
-      targetAudience: 'Business professionals',
-    };
+    console.error('[dumpling] Scraping failed:', error);
+    return getFallbackData(url);
   }
 }
 
-function extractFeatures(html: string, title: string, heroText: string, description: string): string[] {
+function getFallbackData(url: string): WebsiteData {
+  const hostname = new URL(url).hostname.replace('www.', '');
+  const formattedName = hostname
+    .split('.')[0]
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+
+  return {
+    title: formattedName,
+    heroText: 'Professional business services',
+    features: ['Quality service', 'Expert team', 'Proven results'],
+    industry: 'Professional Services',
+    targetAudience: 'Business professionals',
+  };
+}
+
+function extractTitleFromUrl(url: string): string {
+  const hostname = new URL(url).hostname.replace('www.', '');
+  return hostname
+    .split('.')[0]
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+function extractHeroText(markdown: string): string {
+  // Look for the first heading (# or ##) or first substantial paragraph
+  const lines = markdown.split('\n').filter(line => line.trim());
+
+  // Try to find first H1 or H2 after the title
+  for (let i = 0; i < Math.min(lines.length, 20); i++) {
+    const line = lines[i].trim();
+    if (line.startsWith('##') && !line.startsWith('###')) {
+      return line.replace(/^##\s*/, '').trim();
+    }
+  }
+
+  // Fall back to first substantial paragraph
+  for (const line of lines.slice(0, 30)) {
+    const text = line.trim();
+    if (!text.startsWith('#') && !text.startsWith('[') && text.length > 30 && text.length < 200) {
+      return text;
+    }
+  }
+
+  return 'Innovative solutions for your business';
+}
+
+function extractDescription(markdown: string): string {
+  const lines = markdown.split('\n').filter(line => line.trim());
+
+  // Find first paragraph that looks like a description
+  for (const line of lines.slice(0, 40)) {
+    const text = line.trim();
+    if (
+      !text.startsWith('#') &&
+      !text.startsWith('[') &&
+      !text.startsWith('-') &&
+      !text.startsWith('*') &&
+      text.length > 50 &&
+      text.length < 300
+    ) {
+      return text;
+    }
+  }
+
+  return '';
+}
+
+function extractFeaturesFromMarkdown(markdown: string): string[] {
   const features: string[] = [];
+  const lines = markdown.split('\n');
 
-  // Strategy 1: Extract from list items (most common pattern for features)
-  const listItemMatches = html.matchAll(/<li[^>]*>(.*?)<\/li>/gi);
-  for (const match of listItemMatches) {
-    const text = match[1].replace(/<[^>]*>/g, '').trim();
-    // Filter out navigation items, short items, and items with links only
-    if (text && text.length > 10 && text.length < 100 && !text.match(/^(home|about|contact|blog|pricing|login|sign|menu)/i)) {
-      features.push(text);
-    }
-  }
+  // Strategy 1: Extract from bullet lists (most common for features)
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
 
-  // Strategy 2: Extract from h2/h3 headings (often used for feature titles)
-  if (features.length < 3) {
-    const headingMatches = html.matchAll(/<h[23][^>]*>(.*?)<\/h[23]>/gi);
-    for (const match of headingMatches) {
-      const text = match[1].replace(/<[^>]*>/g, '').trim();
-      if (text && text.length > 10 && text.length < 80 && !text.match(/^(about|contact|blog|pricing|testimonial|faq)/i)) {
+    // Look for markdown bullet points
+    if ((line.startsWith('- ') || line.startsWith('* ')) && line.length > 15 && line.length < 120) {
+      const text = line.replace(/^[-*]\s+/, '').trim();
+
+      // Filter out navigation and common non-feature items
+      if (!text.match(/^(home|about|contact|blog|pricing|login|sign up|sign in|menu|privacy|terms)/i)) {
         features.push(text);
       }
     }
   }
 
-  // Strategy 3: Extract from paragraphs with strong/bold text (feature descriptions)
+  // Strategy 2: Extract from headings (H3/H4 often used for features)
   if (features.length < 3) {
-    const strongMatches = html.matchAll(/<(strong|b)>(.*?)<\/(strong|b)>/gi);
-    for (const match of strongMatches) {
-      const text = match[2].replace(/<[^>]*>/g, '').trim();
-      if (text && text.length > 10 && text.length < 80) {
+    for (const line of lines) {
+      const text = line.trim();
+      if (text.startsWith('###') && !text.startsWith('####')) {
+        const heading = text.replace(/^###\s*/, '').trim();
+        if (
+          heading.length > 10 &&
+          heading.length < 80 &&
+          !heading.match(/^(about|contact|blog|pricing|testimonial|faq|reviews)/i)
+        ) {
+          features.push(heading);
+        }
+      }
+    }
+  }
+
+  // Strategy 3: Look for bold text that might indicate features
+  if (features.length < 3) {
+    const boldMatches = markdown.matchAll(/\*\*(.*?)\*\*/g);
+    for (const match of boldMatches) {
+      const text = match[1].trim();
+      if (text.length > 15 && text.length < 80 && !features.includes(text)) {
         features.push(text);
       }
     }
   }
 
-  // Remove duplicates and limit to 5 most relevant features
+  // Remove duplicates and return top 3-5 features
   const uniqueFeatures = Array.from(new Set(features))
-    .filter(f => f.length > 15 && f.length < 100) // Focus on substantial features
+    .filter(f => f.length > 15 && f.length < 120)
     .slice(0, 5);
 
-  // Fallback if we couldn't extract good features
+  // If we still don't have good features, return generic ones
   if (uniqueFeatures.length === 0) {
-    // Create intelligent fallbacks based on title and description
-    return [
-      heroText,
-      description || 'Comprehensive solutions',
-      `${title.split(' ')[0]} expertise and innovation`
-    ].filter(f => f && f.length > 10).slice(0, 3);
+    return ['Comprehensive solutions', 'Expert team and support', 'Proven track record'];
   }
 
-  return uniqueFeatures.slice(0, 3); // Return top 3 features
+  return uniqueFeatures.slice(0, 3);
 }
 
 function inferIndustry(title: string, heroText: string, description: string): string {
