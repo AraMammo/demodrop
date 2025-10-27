@@ -17,6 +17,12 @@ export async function GET(
       );
     }
 
+    console.log('[api/projects] Raw project from DB:', {
+      status: project.status,
+      progress: project.progress,
+      sora_job_id: project.sora_job_id,
+    });
+
     // Transform snake_case to camelCase for frontend
     const transformedProject = {
       id: project.id,
@@ -33,6 +39,12 @@ export async function GET(
       createdAt: project.created_at,
       completedAt: project.completed_at,
     };
+
+    console.log('[api/projects] Transformed for frontend:', {
+      status: transformedProject.status,
+      progress: transformedProject.progress,
+      soraJobId: transformedProject.soraJobId,
+    });
 
     return NextResponse.json(transformedProject);
     
