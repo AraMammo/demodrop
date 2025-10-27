@@ -68,6 +68,8 @@ export async function POST(req: NextRequest) {
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
     const processUrl = `${baseUrl}/api/process-video`
 
+    console.log('[generate-video] Triggering background process:', processUrl)
+
     fetch(processUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -77,7 +79,18 @@ export async function POST(req: NextRequest) {
         stylePreset,
         customInstructions,
       }),
-    }).catch(console.error)
+    })
+      .then(res => {
+        console.log('[generate-video] Background process response:', res.status)
+        if (!res.ok) {
+          return res.text().then(text => {
+            console.error('[generate-video] Background process failed:', text)
+          })
+        }
+      })
+      .catch(err => {
+        console.error('[generate-video] Background process error:', err)
+      })
 
     return NextResponse.json({
       projectId,

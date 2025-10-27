@@ -23,21 +23,27 @@ export const maxDuration = 300;
 export async function POST(req: NextRequest) {
   let projectId: string | undefined;
   try {
+    console.log('[process-video] Request received');
     const body = await req.json();
     projectId = body.projectId;
     const { websiteUrl, stylePreset, customInstructions } = body;
+
+    console.log('[process-video] Processing project:', projectId, 'URL:', websiteUrl);
 
     if (!projectId) {
       return NextResponse.json({ error: 'Missing projectId' }, { status: 400 });
     }
 
     // Phase 1: Scrape website
+    console.log('[process-video] Phase 1: Starting website scrape');
     await updateProject(projectId, { status: 'scraping', progress: 10 });
 
     let websiteData;
     try {
       websiteData = await scrapeWebsite(websiteUrl);
+      console.log('[process-video] Website scraped successfully');
     } catch (error) {
+      console.error('[process-video] Scraping failed:', error);
       await updateProject(projectId, {
         status: 'failed',
         error: 'Failed to scrape website',
@@ -46,6 +52,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Phase 2: AI Orchestration - Enhance the prompt
+    console.log('[process-video] Phase 2: Generating AI prompt');
     await updateProject(projectId, { status: 'generating', progress: 20 });
     
     const preset = STYLE_PRESETS[stylePreset];
