@@ -6,8 +6,6 @@ import { scrapeWebsite } from '@/lib/dumpling';
 import { updateProject, getProject, incrementUserVideoCount } from '@/lib/db';
 import { uploadVideoToStorage } from '@/lib/storage';
 import { createProductionPrompt } from '@/lib/prompt-orchestrator';
-import { splitPromptIntoTwo } from '@/lib/prompt-splitter';
-import { stitchVideos } from '@/lib/video-stitcher';
 
 // Lazy initialization to avoid build-time errors
 let openai: OpenAI | null = null;
@@ -20,8 +18,7 @@ function getOpenAI() {
   return openai;
 }
 
-// Increased duration to handle 2-clip generation (2x ~5min + stitching)
-export const maxDuration = 600; // 10 minutes
+export const maxDuration = 300;
 
 export async function POST(req: NextRequest) {
   let projectId: string | undefined;
@@ -65,17 +62,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Scraping failed' }, { status: 500 });
     }
 
-    // Phase 2: AI Orchestration - Enhance the prompt & Split into 2 parts
-    console.log('[process-video] Phase 2: Generating and splitting AI prompt');
+    // Phase 2: AI Orchestration - Enhance the prompt
+    console.log('[process-video] Phase 2: Generating AI prompt');
     await updateProject(projectId, { status: 'generating', progress: 20 });
-
+    
     const preset = STYLE_PRESETS[stylePreset];
 
-    // For 24-second videos, we generate 2x 12-second clips
-    const clipDuration = 12;
-    const totalDuration = preset.duration; // Should be 24
+    // Map preset duration to valid Sora durations FIRST
+    // Sora 2 supports: 4, 8, 12 seconds (standard) or up to 15 seconds (all users)
+    const mapDurationToSora = (duration: number): '4' | '8' | '12' => {
+      if (duration <= 4) return '4';
+      if (duration <= 8) return '8';
+      return '12'; // Max for standard API (15s may be available but using 12s for reliability)
+    };
 
-    let fullPrompt: string;
+    const actualSoraDuration = mapDurationToSora(preset.duration);
+    const actualDurationSeconds = parseInt(actualSoraDuration);
+
+    let prompt: string;
 
     try {
       // Transform preset to match orchestrator expectations
@@ -86,203 +90,76 @@ export async function POST(req: NextRequest) {
         aesthetic: preset.visual_aesthetic,
       };
 
-      // Generate full 24-second prompt
-      fullPrompt = await createProductionPrompt(
+      // Use AI orchestrator with ACTUAL Sora duration, not preset duration
+      prompt = await createProductionPrompt(
         websiteData,
         orchestratorPreset,
         customInstructions,
-        totalDuration  // 24 seconds
+        actualDurationSeconds  // Use actual Sora duration (4, 8, or 12)
       );
 
-      console.log('[process-video] AI-orchestrated prompt created for', totalDuration, 'seconds');
-      console.log('[process-video] Full prompt preview:', fullPrompt.substring(0, 300) + '...');
+      console.log('[process-video] AI-orchestrated prompt created for', actualDurationSeconds, 'seconds');
+      console.log('[process-video] Prompt preview:', prompt.substring(0, 300) + '...');
+
+      // Verify brand data is in the prompt
+      const hasBrandColors = websiteData.brand?.colors?.some(color => prompt.includes(color));
+      const hasBrandTone = prompt.toLowerCase().includes(websiteData.brand?.tone?.toLowerCase() || '');
+      console.log('[process-video] Brand data in prompt:', {
+        hasBrandColors,
+        hasBrandTone,
+        brandColorsUsed: websiteData.brand?.colors,
+        brandToneUsed: websiteData.brand?.tone,
+      });
 
     } catch (orchestrationError) {
       console.log('[process-video] Orchestration failed, falling back to basic prompt:', orchestrationError);
 
       // Fallback to basic prompt if orchestrator fails
-      fullPrompt = await buildSoraPrompt({
+      prompt = await buildSoraPrompt({
         websiteData,
         stylePreset,
         customInstructions,
-        actualDuration: totalDuration,
+        actualDuration: actualDurationSeconds,  // Pass actual duration to fallback too
       });
     }
 
-    // Phase 2b: Split prompt into 2 parts
-    console.log('[process-video] Splitting prompt into 2x 12-second parts...');
-    await updateProject(projectId, { progress: 25 });
-
-    let splitPrompt;
-    try {
-      splitPrompt = await splitPromptIntoTwo(
-        fullPrompt,
-        websiteData,
-        {
-          name: preset.name,
-          tone: preset.tone,
-          pacing: preset.pacing_style,
-          aesthetic: preset.visual_aesthetic,
-        }
-      );
-
-      console.log('[process-video] Prompt split successfully:', {
-        part1: splitPrompt.part1.description,
-        part2: splitPrompt.part2.description,
-        transition: splitPrompt.transitionNote,
-      });
-
-    } catch (splitError) {
-      console.error('[process-video] Prompt splitting failed:', splitError);
-      await updateProject(projectId, {
-        status: 'failed',
-        error: 'Failed to split prompt for 2-clip generation',
-      });
-      return NextResponse.json({ error: 'Prompt splitting failed' }, { status: 500 });
-    }
-
-    // Store full narrative
+    // Phase 3: Submit to Sora
     await updateProject(projectId, {
       status: 'generating',
-      prompt: splitPrompt.fullNarrative,
+      prompt,
       progress: 30,
     });
 
-    // Phase 3a: Generate Clip 1 (0-12s)
-    console.log('[process-video] Phase 3a: Generating Clip 1 (0-12s)');
-    await updateProject(projectId, { progress: 35 });
-
-    let clip1Job;
+    let soraJob;
     try {
-      clip1Job = await getOpenAI().videos.create({
+      soraJob = await getOpenAI().videos.create({
         model: 'sora-2',
-        prompt: splitPrompt.part1.prompt,
-        seconds: '12',
-        size: '1280x720',
+        prompt: prompt,
+        seconds: mapDurationToSora(preset.duration),
+        size: '1280x720', // 16:9 horizontal format
       });
 
-      console.log('[process-video] Clip 1 job created:', clip1Job.id);
+      console.log('Sora job created:', soraJob.id);
 
     } catch (error: any) {
-      console.error('[process-video] Clip 1 Sora API error:', error);
+      console.error('Sora API error:', error);
       await updateProject(projectId, {
         status: 'failed',
-        error: 'Failed to start Clip 1 generation: ' + error.message,
+        error: error.message || 'Failed to start Sora generation',
       });
-      return NextResponse.json({ error: 'Clip 1 generation failed' }, { status: 500 });
+      return NextResponse.json({ error: 'Sora API failed' }, { status: 500 });
     }
 
-    // Poll for Clip 1 completion (progress: 35-60%)
-    const clip1Result = await pollSoraJobWithProgress(projectId, clip1Job.id, 35, 60);
-
-    if (clip1Result.status !== 'completed' || !clip1Result.videoBlob) {
-      return NextResponse.json({ error: 'Clip 1 generation failed' }, { status: 500 });
-    }
-
-    console.log('[process-video] Clip 1 completed, size:', clip1Result.videoBlob.size);
-
-    // Phase 3b: Generate Clip 2 (12-24s)
-    console.log('[process-video] Phase 3b: Generating Clip 2 (12-24s)');
-    await updateProject(projectId, { progress: 60 });
-
-    let clip2Job;
-    try {
-      clip2Job = await getOpenAI().videos.create({
-        model: 'sora-2',
-        prompt: splitPrompt.part2.prompt,
-        seconds: '12',
-        size: '1280x720',
-      });
-
-      console.log('[process-video] Clip 2 job created:', clip2Job.id);
-
-    } catch (error: any) {
-      console.error('[process-video] Clip 2 Sora API error:', error);
-      await updateProject(projectId, {
-        status: 'failed',
-        error: 'Failed to start Clip 2 generation: ' + error.message,
-      });
-      return NextResponse.json({ error: 'Clip 2 generation failed' }, { status: 500 });
-    }
-
-    // Poll for Clip 2 completion (progress: 60-85%)
-    const clip2Result = await pollSoraJobWithProgress(projectId, clip2Job.id, 60, 85);
-
-    if (clip2Result.status !== 'completed' || !clip2Result.videoBlob) {
-      return NextResponse.json({ error: 'Clip 2 generation failed' }, { status: 500 });
-    }
-
-    console.log('[process-video] Clip 2 completed, size:', clip2Result.videoBlob.size);
-
-    // Phase 4: Stitch clips together
-    console.log('[process-video] Phase 4: Stitching clips together');
-    await updateProject(projectId, { progress: 85 });
-
-    let finalVideoBlob;
-    try {
-      const stitchedVideo = await stitchVideos(
-        clip1Result.videoBlob,
-        clip2Result.videoBlob,
-        {
-          transitionType: 'cut', // Simple cut for reliability
-          transitionDuration: 0,
-        }
-      );
-
-      finalVideoBlob = stitchedVideo.blob;
-
-      console.log('[process-video] Videos stitched successfully:', {
-        finalSize: finalVideoBlob.size,
-        duration: stitchedVideo.duration,
-      });
-
-    } catch (stitchError) {
-      console.error('[process-video] Stitching failed:', stitchError);
-      await updateProject(projectId, {
-        status: 'failed',
-        error: 'Failed to stitch video clips: ' + (stitchError instanceof Error ? stitchError.message : 'Unknown error'),
-      });
-      return NextResponse.json({ error: 'Video stitching failed' }, { status: 500 });
-    }
-
-    // Phase 5: Upload final video
-    console.log('[process-video] Phase 5: Uploading final video');
-    await updateProject(projectId, { progress: 95 });
-
-    let videoUrl;
-    try {
-      videoUrl = await uploadVideoToStorage(finalVideoBlob, projectId);
-      console.log('[process-video] Video uploaded successfully:', videoUrl);
-    } catch (uploadError) {
-      console.error('[process-video] Upload failed:', uploadError);
-      await updateProject(projectId, {
-        status: 'failed',
-        error: 'Failed to upload video',
-      });
-      return NextResponse.json({ error: 'Video upload failed' }, { status: 500 });
-    }
-
-    // Phase 6: Complete
+    // Store Sora job ID
     await updateProject(projectId, {
-      status: 'completed',
-      videoUrl,
-      completedAt: Date.now(),
-      progress: 100,
+      soraJobId: soraJob.id,
+      progress: 35,
     });
 
-    // Increment user's video count
-    const project = await getProject(projectId);
-    if (project && project.user_id) {
-      try {
-        await incrementUserVideoCount(project.user_id);
-        console.log('[process-video] User video count incremented for user:', project.user_id);
-      } catch (error) {
-        console.error('[process-video] Failed to increment user video count:', error);
-        // Don't fail the request if this fails
-      }
-    }
+    // Phase 4: Poll Sora until complete
+    const result = await pollSoraJob(projectId, soraJob.id);
 
-    return NextResponse.json({ status: 'completed', videoUrl });
+    return NextResponse.json(result);
 
   } catch (error) {
     console.error('Process video error:', error);
@@ -306,56 +183,59 @@ export async function POST(req: NextRequest) {
   }
 }
 
-/**
- * Poll a Sora job with progress mapped to a specific range
- * @param projectId - Project ID to update
- * @param soraJobId - Sora job ID to poll
- * @param startProgress - Starting progress percentage (e.g., 35)
- * @param endProgress - Ending progress percentage (e.g., 60)
- * @returns Result with status and videoBlob if completed
- */
-async function pollSoraJobWithProgress(
-  projectId: string,
-  soraJobId: string,
-  startProgress: number,
-  endProgress: number
-): Promise<{ status: string; videoBlob?: Blob; error?: any }> {
+async function pollSoraJob(projectId: string, soraJobId: string) {
   const maxAttempts = 60; // 5 minutes max (5s intervals)
 
   for (let i = 0; i < maxAttempts; i++) {
     try {
       const soraJob = await getOpenAI().videos.retrieve(soraJobId);
 
-      // Map Sora progress (0-100) to our range (startProgress-endProgress)
-      const progressRange = endProgress - startProgress;
-      const mappedProgress = Math.min(
-        endProgress,
-        startProgress + (soraJob.progress || 0) * (progressRange / 100)
-      );
+      // Map Sora progress to our scale (35-95%)
+      const mappedProgress = Math.min(95, 35 + (soraJob.progress || 0) * 0.6);
 
       await updateProject(projectId, {
         progress: Math.round(mappedProgress),
       });
 
       if (soraJob.status === 'completed') {
-        console.log(`[poll] Sora job ${soraJobId} completed`);
+        console.log('Sora generation completed');
 
         // Download video content
+        await updateProject(projectId, { progress: 96 });
         const videoResponse = await getOpenAI().videos.downloadContent(soraJobId);
         const videoBlob = await videoResponse.blob();
 
-        console.log(`[poll] Downloaded video blob, size: ${videoBlob.size} bytes`);
+        // Upload to storage
+        await updateProject(projectId, { progress: 98 });
+        const videoUrl = await uploadVideoToStorage(videoBlob, projectId);
 
-        // Set progress to end of range
+        // Final update
         await updateProject(projectId, {
-          progress: endProgress,
+          status: 'completed',
+          videoUrl,
+          completedAt: Date.now(),
+          progress: 100,
         });
 
-        return { status: 'completed', videoBlob };
+        // Increment user's video count
+        const project = await getProject(projectId);
+        if (project && project.user_id) {
+          try {
+            await incrementUserVideoCount(project.user_id);
+            console.log('User video count incremented for user:', project.user_id);
+          } catch (error) {
+            console.error('Failed to increment user video count:', error);
+            // Don't fail the request if this fails
+          }
+        }
+
+        console.log('Video uploaded successfully:', videoUrl);
+
+        return { status: 'completed', videoUrl };
       }
 
       if (soraJob.status === 'failed') {
-        console.error(`[poll] Sora job ${soraJobId} failed:`, soraJob.error);
+        console.error('Sora job failed:', soraJob.error);
         await updateProject(projectId, {
           status: 'failed',
           error: soraJob.error?.message || 'Sora generation failed',
@@ -367,16 +247,16 @@ async function pollSoraJobWithProgress(
       await new Promise(resolve => setTimeout(resolve, 5000));
 
     } catch (error) {
-      console.error('[poll] Poll error:', error);
+      console.error('Poll error:', error);
       // Continue polling unless max attempts reached
     }
   }
 
   // Timeout
-  console.error(`[poll] Sora job ${soraJobId} timeout after ${maxAttempts} attempts`);
+  console.error('Sora job timeout');
   await updateProject(projectId, {
     status: 'failed',
-    error: 'Video generation timeout - please try again',
+    error: 'Generation timeout - please try again',
   });
 
   return { status: 'failed', error: 'Timeout' };
