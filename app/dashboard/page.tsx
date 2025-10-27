@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { VideoGrid } from "@/components/dashboard/video-grid"
 import { VideoFilters } from "@/components/dashboard/video-filters"
@@ -20,6 +20,7 @@ export default function DashboardPage() {
   const [search, setSearch] = useState<string>("")
   const router = useRouter()
   const supabase = createClient()
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -68,6 +69,11 @@ export default function DashboardPage() {
     }
   }, [user, filter, search])
 
+  // Memoize the processing video count to avoid unnecessary re-renders
+  const processingCount = useMemo(() => {
+    return videos.filter((v) => v.status === "scraping" || v.status === "generating").length
+  }, [videos])
+
   // Fetch videos when filters change
   useEffect(() => {
     if (isLoaded && user) {
@@ -82,19 +88,34 @@ export default function DashboardPage() {
 
   // Poll only when there are processing videos
   useEffect(() => {
-    if (!user || !videos.length) return
+    if (!user) {
+      // Clear polling if user logs out
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+        pollingIntervalRef.current = null
+      }
+      return
+    }
 
-    const hasProcessingVideos = videos.some((v) => v.status === "scraping" || v.status === "generating")
+    if (processingCount > 0 && !pollingIntervalRef.current) {
+      // Start polling
+      pollingIntervalRef.current = setInterval(() => {
+        fetchVideos()
+      }, 5000)
+    } else if (processingCount === 0 && pollingIntervalRef.current) {
+      // Stop polling
+      clearInterval(pollingIntervalRef.current)
+      pollingIntervalRef.current = null
+    }
 
-    if (!hasProcessingVideos) return
-
-    const intervalId = setInterval(() => {
-      fetchVideos()
-    }, 5000) // Poll every 5 seconds only when there are processing videos
-
-    return () => clearInterval(intervalId)
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+        pollingIntervalRef.current = null
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, videos])
+  }, [user, processingCount])
 
   const handleDelete = async (videoId: string) => {
     if (!confirm("Delete this video? This action cannot be undone.")) return
