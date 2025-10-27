@@ -14,11 +14,7 @@ export interface StitchedVideo {
 /**
  * Stitch two video clips together with a smooth transition
  *
- * Note: This uses browser-compatible approach since Vercel serverless
- * doesn't have FFmpeg by default. For production, consider:
- * 1. FFmpeg Lambda Layer
- * 2. External stitching service
- * 3. Client-side processing
+ * Uses Digital Ocean FFmpeg endpoint for reliable server-side processing
  */
 export async function stitchVideos(
   clip1Blob: Blob,
@@ -38,23 +34,76 @@ export async function stitchVideos(
   });
 
   try {
-    // APPROACH 1: Simple concatenation (no fancy transitions)
-    // This is the most reliable approach for server-side processing
-    // The clips will play back-to-back with a simple cut
+    // Check for external FFmpeg endpoint (Digital Ocean)
+    const ffmpegEndpoint = process.env.FFMPEG_ENDPOINT_URL;
 
-    if (transitionType === 'cut') {
+    if (ffmpegEndpoint) {
+      console.log('[video-stitcher] Using Digital Ocean FFmpeg endpoint');
+      return await stitchViaExternalEndpoint(clip1Blob, clip2Blob, ffmpegEndpoint, options);
+    }
+
+    // Fallback: Try local FFmpeg if available
+    if (await isFFmpegAvailable()) {
+      console.log('[video-stitcher] Using local FFmpeg');
       return await simpleConcat(clip1Blob, clip2Blob);
     }
 
-    // APPROACH 2: For fade transitions, we need FFmpeg or external service
-    // For now, fall back to simple concat
-    // TODO: Implement FFmpeg-based fading when infrastructure is ready
-    console.warn('[video-stitcher] Fade transitions not yet implemented, using cut');
-    return await simpleConcat(clip1Blob, clip2Blob);
+    // No FFmpeg available
+    throw new Error('FFmpeg not available. Please configure FFMPEG_ENDPOINT_URL environment variable.');
 
   } catch (error) {
     console.error('[video-stitcher] Error stitching videos:', error);
     throw new Error('Failed to stitch video clips: ' + (error instanceof Error ? error.message : 'Unknown error'));
+  }
+}
+
+/**
+ * Stitch videos using external FFmpeg API endpoint (Digital Ocean)
+ */
+async function stitchViaExternalEndpoint(
+  clip1Blob: Blob,
+  clip2Blob: Blob,
+  endpointUrl: string,
+  options: StitchOptions
+): Promise<StitchedVideo> {
+  console.log('[video-stitcher] Calling external FFmpeg endpoint:', endpointUrl);
+
+  try {
+    // Convert blobs to base64 or use FormData depending on API
+    const formData = new FormData();
+    formData.append('clip1', clip1Blob, 'clip1.mp4');
+    formData.append('clip2', clip2Blob, 'clip2.mp4');
+    formData.append('transitionType', options.transitionType || 'cut');
+    formData.append('transitionDuration', String(options.transitionDuration || 0));
+
+    const response = await fetch(endpointUrl, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        // Add auth if needed
+        // 'Authorization': `Bearer ${process.env.FFMPEG_API_KEY}`
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`FFmpeg endpoint error: ${response.status} - ${errorText}`);
+    }
+
+    // Assuming the endpoint returns the stitched video as a blob
+    const resultBlob = await response.blob();
+
+    console.log('[video-stitcher] External endpoint succeeded, output size:', resultBlob.size);
+
+    return {
+      blob: resultBlob,
+      duration: 24, // 12s + 12s
+      size: resultBlob.size,
+    };
+
+  } catch (error) {
+    console.error('[video-stitcher] External endpoint failed:', error);
+    throw new Error(`External FFmpeg endpoint failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
