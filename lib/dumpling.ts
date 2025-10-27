@@ -10,6 +10,7 @@ interface WebsiteData {
     tone: string;      // Brand voice/tone (professional, playful, technical, etc.)
     visualStyle: string; // Visual aesthetic (modern, classic, minimalist, bold, etc.)
     keyMessage: string;  // Primary value proposition/message
+    logoUrl?: string;    // URL to company logo (if found)
   };
 }
 
@@ -70,6 +71,7 @@ export async function scrapeWebsite(url: string): Promise<WebsiteData> {
     const brandVisualStyle = inferVisualStyle(allText, industry);
     const brandColors = inferBrandColors(industry, brandVisualStyle);
     const keyMessage = heroText || description || `${title}'s innovative solutions`;
+    const logoUrl = extractLogoUrl(data.content, url);
 
     const result = {
       title,
@@ -83,6 +85,7 @@ export async function scrapeWebsite(url: string): Promise<WebsiteData> {
         tone: brandTone,
         visualStyle: brandVisualStyle,
         keyMessage: keyMessage,
+        logoUrl: logoUrl,
       },
     };
 
@@ -114,6 +117,7 @@ function getFallbackData(url: string): WebsiteData {
       tone: 'Professional and trustworthy',
       visualStyle: 'Modern and clean',
       keyMessage: 'Professional business services',
+      logoUrl: undefined,
     },
   };
 }
@@ -347,4 +351,70 @@ function inferBrandColors(industry: string, visualStyle: string): string[] {
 
   // Default to industry colors
   return industryColors[industry] || ['#3b82f6', '#1e40af', '#ffffff'];
+}
+
+function extractLogoUrl(markdown: string, websiteUrl: string): string | undefined {
+  // Look for images in markdown format: ![alt](url) or <img src="url">
+  const imagePatterns = [
+    /!\[([^\]]*)\]\(([^)]+)\)/g,  // ![alt](url)
+    /src=["']([^"']+)["']/g,      // src="url"
+  ];
+
+  const potentialLogos: { url: string; score: number }[] = [];
+
+  for (const pattern of imagePatterns) {
+    let match;
+    while ((match = pattern.exec(markdown)) !== null) {
+      const altText = match[1] || '';
+      const imageUrl = match[2] || match[1];
+
+      // Skip if not an image URL
+      if (!imageUrl.match(/\.(png|jpg|jpeg|svg|webp|gif)(\?|$)/i)) {
+        continue;
+      }
+
+      // Score based on likelihood of being a logo
+      let score = 0;
+
+      // High score for "logo" in alt text or filename
+      if (altText.toLowerCase().includes('logo')) score += 50;
+      if (imageUrl.toLowerCase().includes('logo')) score += 50;
+
+      // Medium score for header/brand/company indicators
+      if (altText.toLowerCase().match(/header|brand|company|nav/)) score += 30;
+      if (imageUrl.toLowerCase().match(/header|brand|company|nav/)) score += 30;
+
+      // Bonus for SVG (logos are often SVG)
+      if (imageUrl.match(/\.svg/i)) score += 20;
+
+      // Penalty for common non-logo patterns
+      if (imageUrl.match(/icon|avatar|profile|screenshot|banner|hero|bg|background/i)) score -= 20;
+      if (altText.match(/screenshot|photo|image|banner|hero/i)) score -= 20;
+
+      // Only consider images with some score
+      if (score > 0) {
+        // Make absolute URL if relative
+        let absoluteUrl = imageUrl;
+        if (imageUrl.startsWith('/')) {
+          const urlObj = new URL(websiteUrl);
+          absoluteUrl = `${urlObj.protocol}//${urlObj.host}${imageUrl}`;
+        } else if (!imageUrl.startsWith('http')) {
+          const urlObj = new URL(websiteUrl);
+          absoluteUrl = `${urlObj.protocol}//${urlObj.host}/${imageUrl}`;
+        }
+
+        potentialLogos.push({ url: absoluteUrl, score });
+      }
+    }
+  }
+
+  // Sort by score and return highest scoring logo
+  if (potentialLogos.length > 0) {
+    potentialLogos.sort((a, b) => b.score - a.score);
+    console.log('[dumpling] Found potential logo:', potentialLogos[0].url, 'score:', potentialLogos[0].score);
+    return potentialLogos[0].url;
+  }
+
+  console.log('[dumpling] No logo found');
+  return undefined;
 }

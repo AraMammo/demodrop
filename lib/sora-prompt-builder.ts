@@ -125,6 +125,7 @@ BRAND IDENTITY (CRITICAL - MUST BE ON-BRAND):
 - Brand tone: ${brand.tone} - Match this voice in any narration
 - Visual style: ${brand.visualStyle} - Ensure aesthetic matches this style
 - Key message: ${brand.keyMessage} - Center the video around this core message
+${brand.logoUrl ? `- Company logo: USE THE ACTUAL LOGO from the website (visible at ${brand.logoUrl}) - DO NOT create or generate a different logo` : '- Logo: Use simple, recognizable brand mark based on company name'}
 
 VISUAL STYLE:
 - Aesthetic: ${preset.visual_aesthetic} combined with ${brand.visualStyle}

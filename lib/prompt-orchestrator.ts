@@ -24,6 +24,7 @@ interface OrchestrationInput {
       tone: string;
       visualStyle: string;
       keyMessage: string;
+      logoUrl?: string;
     };
   };
   stylePreset: {
