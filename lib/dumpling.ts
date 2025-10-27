@@ -56,12 +56,14 @@ export async function scrapeWebsite(url: string): Promise<WebsiteData> {
 
     const data: DumplingAIResponse = await response.json();
     console.log('[dumpling] Successfully scraped. Title:', data.title);
+    console.log('[dumpling] Metadata received:', JSON.stringify(data.metadata, null, 2));
 
     // Extract meaningful data from the markdown content
     const title = data.title || extractTitleFromUrl(url);
     const heroText = extractHeroText(data.content);
     const features = extractFeaturesFromMarkdown(data.content);
-    const description = extractDescription(data.content);
+    // Try to get meta description from metadata first, then fall back to extracting from content
+    const description = data.metadata?.description || data.metadata?.['og:description'] || extractDescription(data.content);
 
     // Infer industry and audience from content
     // Use more content for better analysis (first 8000 chars instead of 2000)

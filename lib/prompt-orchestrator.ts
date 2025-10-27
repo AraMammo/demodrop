@@ -141,11 +141,16 @@ Transform this into a production-ready video prompt that includes:
 3. Camera movements and composition (precise shot types)
 4. Authentic human moments (not stock footage scenarios)
 5. Scene-by-scene breakdown with exact timing that adds up to ${input.duration} seconds
+   - **CRITICAL**: Each scene must demonstrate ONE of the key features listed above
+   - Show WHAT the product does, not just that it exists
+   - Example: Don't say "user interacts with interface" - say "user records voice note and watches AI transform it into polished blog post"
 6. Emotional beats that build viewer connection
 7. Concise voiceover script (max ${Math.floor(input.duration * 2.5 * 0.8)} words) with natural pauses
+   - Script should reference specific features/capabilities, not generic marketing speak
 
 Make it cinematic. Make it unique. Make it impossible to confuse with any other company's video.
-CRITICAL: Ensure all timing fits within the ${input.duration}-second constraint.`;
+CRITICAL: Ensure all timing fits within the ${input.duration}-second constraint.
+CRITICAL: The video must clearly show what ${input.websiteData.title} DOES - demonstrate the actual features: ${input.websiteData.features.slice(0, 3).join(', ')}`;
 
   try {
     const response = await getOpenAI().chat.completions.create({
@@ -221,10 +226,18 @@ Emotional Tone: ${tone} with ${brand.tone}
 Pacing: ${input.stylePreset.pacing}
 Color Palette: PRIMARY ${brand.colors[0]}, SECONDARY ${brand.colors[1]}, ACCENT ${brand.colors[2] || brand.colors[0]}
 
-Scene Structure:
-- Opening: Establish the problem with authentic human frustration (not stock footage)
-- Middle: Show the product solving the problem with specific UI interactions
-- Closing: Real satisfaction moment - genuine emotion, not posed
+Key Features to Showcase:
+${input.websiteData.features.slice(0, 3).map((f: string, i: number) => `${i + 1}. ${f}`).join('\n')}
+
+Scene Structure (${input.duration}s total):
+${input.duration <= 12 ? `
+- Scene 1 (0-3s): Opening hook showing the problem/need that ${businessName} solves
+- Scene 2 (3-7s): Demonstrate PRIMARY feature: "${input.websiteData.features[0] || 'core functionality'}" in action
+- Scene 3 (7-10s): Show clear benefit and result
+- Scene 4 (10-12s): Brand moment with logo and key message` : `
+- Opening (0-${Math.floor(input.duration * 0.25)}s): Establish the problem with authentic human frustration
+- Middle (${Math.floor(input.duration * 0.25)}-${Math.floor(input.duration * 0.75)}s): Show product solving problem with specific features: ${input.websiteData.features.slice(0, 2).join(', ')}
+- Closing (${Math.floor(input.duration * 0.75)}-${input.duration}s): Real satisfaction moment showing tangible results`}
 
 Voiceover Script (Maximum ${maxWords} words):
 - Concise, impactful narration

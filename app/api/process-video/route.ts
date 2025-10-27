@@ -43,14 +43,18 @@ export async function POST(req: NextRequest) {
       websiteData = await scrapeWebsite(websiteUrl);
       console.log('[process-video] Website scraped successfully:', {
         title: websiteData.title,
-        heroText: websiteData.heroText?.substring(0, 50),
+        heroText: websiteData.heroText?.substring(0, 100),
+        features: websiteData.features,  // Log ALL features, not just count
         featuresCount: websiteData.features?.length,
         industry: websiteData.industry,
+        targetAudience: websiteData.targetAudience,
+        metaDescription: websiteData.metaDescription?.substring(0, 150),
         brand: {
           colors: websiteData.brand?.colors,
           tone: websiteData.brand?.tone,
           visualStyle: websiteData.brand?.visualStyle,
-          keyMessage: websiteData.brand?.keyMessage?.substring(0, 50),
+          keyMessage: websiteData.brand?.keyMessage,
+          logoUrl: websiteData.brand?.logoUrl,
         },
       });
     } catch (error) {

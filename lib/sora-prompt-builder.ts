@@ -140,10 +140,15 @@ BUSINESS CONTEXT:
 - Primary offering: ${valueProp}
 - Key message: ${brand.keyMessage}
 - Target audience: ${audience}
+${websiteData.metaDescription ? `
+WHAT THIS PRODUCT ACTUALLY DOES:
+"${websiteData.metaDescription}"
+^ Use this description to understand the product's core functionality. Show THIS in the video.` : ''}
 
-KEY FEATURES TO SHOWCASE:
+KEY FEATURES TO SHOWCASE (demonstrate these visually):
 ${features.map(f => `- ${f}`).join('\n')}
-${videoDuration <= 12 ? `NOTE: For ${videoDuration}-second videos, focus on showcasing ONE primary feature exceptionally well rather than cramming multiple features. Quality over quantity.` : ''}
+${videoDuration <= 12 ? `
+NOTE: For ${videoDuration}-second videos, focus on showcasing ONE primary feature ("${features[0]}") exceptionally well rather than cramming multiple features. Show exactly what this feature DOES and the transformation it creates.` : ''}
 
 BRAND IDENTITY (CRITICAL - MUST BE ON-BRAND):
 - Brand colors: ${brand.colors.join(', ')} - USE THESE EXACT COLORS throughout the video
@@ -159,7 +164,7 @@ VISUAL STYLE:
 - Tone: ${preset.tone} with ${brand.tone} influence
 
 SCENE STRUCTURE:
-${generateSceneStructure(videoDuration, preset.pacing_style)}
+${generateSceneStructure(videoDuration, preset.pacing_style, features, businessName)}
 
 VOICEOVER GUIDANCE:
 - Keep narration concise and impactful
@@ -192,32 +197,36 @@ function getWordCountForDuration(seconds: number): number {
   return Math.floor(seconds * 2.5 * 0.8);
 }
 
-function generateSceneStructure(duration: number, pacing: string): string {
+function generateSceneStructure(duration: number, pacing: string, features: string[], businessName: string): string {
   // Generate appropriate scene structure based on actual video duration
+  const feature1 = features[0] || 'core functionality';
+  const feature2 = features[1] || 'key benefit';
+
   if (duration <= 4) {
-    return `Single scene: Quick product showcase with key value proposition (0-4s)`;
+    return `Single scene (0-4s): Show ${businessName} solving the problem - demonstrate "${feature1}" in one quick, powerful visual`;
   } else if (duration <= 8) {
-    return `Scene 1 (0-3s): Problem statement or hook
-Scene 2 (3-6s): Solution/product reveal
-Scene 3 (6-8s): Key benefit or call to action`;
+    return `Scene 1 (0-3s): Problem/need that ${businessName} solves - establish context
+Scene 2 (3-6s): Demonstrate "${feature1}" in action - show what it DOES
+Scene 3 (6-8s): Result/benefit - clear outcome from using this feature`;
   } else if (duration <= 12) {
-    return `Scene 1 (0-3s): POWERFUL HOOK - Show brand identity (logo/colors) + core problem in one visceral moment. Make it instantly recognizable.
-Scene 2 (3-7s): SOLUTION IN ACTION - Product/service solving the problem. Focus on ONE key feature, not everything. Show the 'aha' moment.
-Scene 3 (7-10s): EMOTIONAL PAYOFF - Satisfied user, visible results, clear benefit. Real human reaction, not stock poses.
-Scene 4 (10-12s): BRAND MOMENT - Reinforce identity with logo/colors. Memorable closing visual that sticks in viewer's mind.`;
+    return `Scene 1 (0-3s): POWERFUL HOOK - Show ${businessName} brand (logo/colors) + the specific problem this solves. Make it instantly recognizable.
+Scene 2 (3-7s): SOLUTION IN ACTION - Demonstrate "${feature1}" working. Don't just show the interface, show the TRANSFORMATION or result it creates.
+Scene 3 (7-10s): EMOTIONAL PAYOFF - User seeing tangible results from using this feature. Real satisfaction, visible outcome, clear benefit delivered.
+Scene 4 (10-12s): BRAND MOMENT - ${businessName} logo/colors with brief hint of "${feature2}" to tease additional value. Memorable closing.`;
   } else if (duration <= 20) {
-    return `Scene 1 (0-4s): Hook - problem visualization
-Scene 2 (4-9s): Product introduction and key feature
-Scene 3 (9-14s): Secondary feature or use case
-Scene 4 (14-17s): Customer benefit visualization
-Scene 5 (17-20s): Call to action or brand moment`;
+    return `Scene 1 (0-4s): Hook - show the specific problem that ${businessName} addresses
+Scene 2 (4-9s): Demonstrate "${feature1}" - show exactly what this does and how
+Scene 3 (9-14s): Demonstrate "${feature2}" - show additional value and capabilities
+Scene 4 (14-17s): Show tangible results and benefits from using these features
+Scene 5 (17-20s): ${businessName} brand moment and call to action`;
   } else {
     // For longer videos (if API supports them in the future)
-    return `Scene 1 (0-6s): Problem context with authentic scenario
-Scene 2 (6-12s): Product interface and primary features
-Scene 3 (12-18s): Secondary features or integrations
-Scene 4 (18-24s): Results and customer satisfaction
-Scene 5 (24-${duration}s): Brand story and call to action`;
+    const feature3 = features[2] || 'additional capabilities';
+    return `Scene 1 (0-6s): Real-world problem context that ${businessName} solves
+Scene 2 (6-12s): Demonstrate "${feature1}" in detail - show the full workflow
+Scene 3 (12-18s): Demonstrate "${feature2}" - show how features work together
+Scene 4 (18-24s): Show "${feature3}" and demonstrate the complete value proposition
+Scene 5 (24-${duration}s): Real customer results, ${businessName} brand story, and next steps`;
   }
 }
 
