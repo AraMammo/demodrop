@@ -27,58 +27,74 @@ interface StylePreset {
 export const STYLE_PRESETS: Record<string, StylePreset> = {
   'enterprise-saas': {
     name: 'Enterprise SaaS',
-    duration: 30,
+    duration: 24,
     pacing_style: 'Steady, confident, measured',
     tone: 'Professional, authoritative, data-driven',
     visual_aesthetic: 'Clean interfaces, dashboard screenshots, professional office environments',
     color_scheme: 'Corporate blues, grays, whites. Avoid bright colors.',
-    scene_structure: `Scene 1 (0-6s): Problem statement - show professional struggling with current solution
-Scene 2 (6-12s): Product interface - smooth navigation through key features
-Scene 3 (12-18s): Data visualization - charts, metrics, ROI indicators
-Scene 4 (18-24s): Team collaboration - multiple users benefiting
-Scene 5 (24-30s): Success state - satisfied professional, clear results`,
+    scene_structure: `PART 1 (0-12s): Problem & Introduction
+- Open on professional struggling with current workflow (0-5s)
+- Show frustration with legacy system (5-9s)
+- Introduce product interface smoothly (9-12s)
+
+PART 2 (12-24s): Solution & Success
+- Navigate key features with confidence (12-17s)
+- Data visualization showing clear ROI (17-21s)
+- Close on satisfied team collaboration and results (21-24s)`,
   },
-  
+
   'startup-energy': {
     name: 'Startup Energy',
-    duration: 30,
+    duration: 24,
     pacing_style: 'Fast, dynamic, high-energy',
     tone: 'Conversational, innovative, founder-led',
     visual_aesthetic: 'Modern workspaces, vibrant colors, young professionals, tech-forward',
     color_scheme: 'Bold primary colors, high contrast, energetic palette',
-    scene_structure: `Scene 1 (0-5s): Hook - dynamic problem visualization, fast cuts
-Scene 2 (5-10s): Solution reveal - product in action, quick feature showcase
-Scene 3 (10-18s): Use cases - rapid-fire examples of product solving problems
-Scene 4 (18-24s): Founder authenticity - real people, real results
-Scene 5 (24-30s): Call to action - forward momentum, growth trajectory`,
+    scene_structure: `PART 1 (0-12s): Hook & Solution
+- Dynamic hook: problem visualization with energy (0-4s)
+- Quick solution reveal: product in action (4-8s)
+- Fast feature showcase with momentum (8-12s)
+
+PART 2 (12-24s): Impact & CTA
+- Rapid-fire use cases showing real impact (12-18s)
+- Authentic founder/team moment (18-21s)
+- Strong call to action with forward trajectory (21-24s)`,
   },
-  
+
   'product-demo': {
     name: 'Product Demo',
-    duration: 45,
+    duration: 24,
     pacing_style: 'Clear, instructional, methodical',
     tone: 'Explanatory, technical but accessible',
     visual_aesthetic: 'Screen recordings, UI focus, feature callouts',
     color_scheme: 'Match product interface colors. Clean and functional.',
-    scene_structure: `Scene 1 (0-8s): Problem context - show the pain point clearly
-Scene 2 (8-20s): Feature 1 - detailed walkthrough with UI focus
-Scene 3 (20-32s): Feature 2 - show integration or key capability
-Scene 4 (32-40s): Feature 3 - demonstrate ease of use
-Scene 5 (40-45s): Outcome - show final result and value delivered`,
+    scene_structure: `PART 1 (0-12s): Problem & Feature 1
+- Establish pain point with clear context (0-4s)
+- Feature 1: Detailed UI walkthrough (4-10s)
+- Show ease of first interaction (10-12s)
+
+PART 2 (12-24s): Feature 2 & Outcome
+- Feature 2: Integration or key capability (12-18s)
+- Demonstrate final outcome and value (18-22s)
+- Close on successful result and satisfaction (22-24s)`,
   },
-  
+
   'brand-story': {
     name: 'Brand Story',
-    duration: 40,
+    duration: 24,
     pacing_style: 'Thoughtful, human, emotionally resonant',
     tone: 'Authentic, empathetic, mission-driven',
     visual_aesthetic: 'Real people, genuine moments, warm lighting, human connection',
     color_scheme: 'Warm, inviting colors. Natural lighting. Earth tones.',
-    scene_structure: `Scene 1 (0-8s): The founder's why - origin story or mission
-Scene 2 (8-16s): Real customer stories - testimonial-style moments
-Scene 3 (16-26s): Product in real life - authentic use cases
-Scene 4 (26-34s): Community/impact - show broader effect
-Scene 5 (34-40s): Invitation - join the mission, be part of the story`,
+    scene_structure: `PART 1 (0-12s): Mission & Purpose
+- Founder's why: origin story with authenticity (0-6s)
+- The mission that drives the team (6-10s)
+- Transition to real customer impact (10-12s)
+
+PART 2 (12-24s): Impact & Invitation
+- Real customer stories and genuine moments (12-17s)
+- Product in real life: authentic use cases (17-21s)
+- Invitation to join the community/mission (21-24s)`,
   }
 };
 
@@ -180,6 +196,17 @@ Scene 2 (4-9s): Product introduction and key feature
 Scene 3 (9-14s): Secondary feature or use case
 Scene 4 (14-17s): Customer benefit visualization
 Scene 5 (17-20s): Call to action or brand moment`;
+  } else if (duration === 24) {
+    // 24-second videos: 2-part structure for clip stitching
+    return `PART 1 (0-12s): Setup and Introduction
+Scene 1 (0-5s): Hook - establish problem or context
+Scene 2 (5-9s): Solution introduction - show product
+Scene 3 (9-12s): Key feature or capability
+
+PART 2 (12-24s): Development and Resolution
+Scene 4 (12-17s): Secondary feature or integration
+Scene 5 (17-21s): Results and customer satisfaction
+Scene 6 (21-24s): Call to action or brand moment`;
   } else {
     // For longer videos (if API supports them in the future)
     return `Scene 1 (0-6s): Problem context with authentic scenario
