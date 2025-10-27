@@ -43,6 +43,8 @@ export async function scrapeWebsite(url: string): Promise<WebsiteData> {
         format: 'markdown',
         cleaned: true,
         renderJs: true,
+        maxDepth: 3,  // Scrape up to 3 levels deep for more content
+        includeMetadata: true,  // Get all available metadata
       }),
     });
 
@@ -62,7 +64,8 @@ export async function scrapeWebsite(url: string): Promise<WebsiteData> {
     const description = extractDescription(data.content);
 
     // Infer industry and audience from content
-    const allText = `${title} ${heroText} ${data.content.substring(0, 2000)}`;
+    // Use more content for better analysis (first 8000 chars instead of 2000)
+    const allText = `${title} ${heroText} ${data.content.substring(0, 8000)}`;
     const industry = inferIndustry(title, heroText, description);
     const targetAudience = inferTargetAudience(title, heroText, description);
 

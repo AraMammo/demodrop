@@ -192,6 +192,11 @@ export function VideoGenerator() {
         }
 
         const data = await response.json()
+        console.log('[generator] Poll update:', {
+          status: data.status,
+          progress: data.progress,
+          projectId
+        })
 
         if (data.status === "completed") {
           if (pollingIntervalRef.current) {
@@ -222,6 +227,7 @@ export function VideoGenerator() {
         } else {
           const progress = data.progress || 50
           const statusMessage = getStatusMessage(progress)
+          console.log('[generator] Updating state:', { progress, statusMessage, currentPhase: getCurrentPhase(progress).name })
           setState((prev) => ({
             ...prev,
             progress,
@@ -421,6 +427,13 @@ export function VideoGenerator() {
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground pl-5">{getCurrentPhase(state.progress).description}</p>
+                    {state.projectId && (
+                      <p className="text-xs pt-1 pl-5">
+                        <Link href={`/video/${state.projectId}`} className="text-primary hover:underline">
+                          View detailed progress →
+                        </Link>
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
