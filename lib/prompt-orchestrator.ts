@@ -29,6 +29,7 @@ interface OrchestrationInput {
     title: string;
     heroText: string;
     features: string[];
+    metaDescription?: string;
     industry: string;
     targetAudience: string;
     brand: {
