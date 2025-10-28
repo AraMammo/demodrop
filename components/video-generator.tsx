@@ -61,7 +61,7 @@ const PHASES: Record<string, PhaseInfo> = {
 export function VideoGenerator() {
   const [websiteUrl, setWebsiteUrl] = useState("")
   const [stylePreset, setStylePreset] = useState("product-demo")
-  const [videoStyle, setVideoStyle] = useState("animated")
+  const [videoStyle, setVideoStyle] = useState("modern")
   const [customInstructions, setCustomInstructions] = useState("")
   const [state, setState] = useState<GenerationState>({
     status: "idle",
@@ -295,7 +295,7 @@ export function VideoGenerator() {
       projectId: null,
     })
     setWebsiteUrl("")
-    setVideoStyle("animated")
+    setVideoStyle("modern")
     setCustomInstructions("")
   }
 
@@ -408,24 +408,29 @@ export function VideoGenerator() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="animated">
+                    <SelectItem value="modern">
                       <span className="flex items-center gap-2">
-                        🎨 Product Explainer
+                        ✨ Modern & Clean
                       </span>
                     </SelectItem>
                     <SelectItem value="cinematic">
                       <span className="flex items-center gap-2">
-                        📷 Real-World
+                        🎬 Cinematic
                       </span>
                     </SelectItem>
                     <SelectItem value="minimalist">
                       <span className="flex items-center gap-2">
-                        📰 Editorial
+                        📐 Minimalist
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="animated">
+                      <span className="flex items-center gap-2">
+                        🎨 Motion Graphics
                       </span>
                     </SelectItem>
                     <SelectItem value="analog">
                       <span className="flex items-center gap-2">
-                        📼 Retro
+                        📼 Retro Film
                       </span>
                     </SelectItem>
                   </SelectContent>

@@ -17,12 +17,13 @@ interface WebsiteData {
 // Map video aesthetic style to detailed description
 function getAestheticDescription(style: string): string {
   const aesthetics: Record<string, string> = {
-    animated: 'Product Explainer - Clean, animated graphics with smooth motion. Modern UI elements, clear typography, graphic overlays. Think explainer video style with animated icons and text.',
-    cinematic: 'Real-World Cinematic - Authentic real-world footage with cinematic quality. Natural environments, real people, film-like color grading. Documentary meets commercial photography style.',
-    minimalist: 'Editorial Minimalist - Clean, simple compositions with lots of negative space. Monochromatic or limited color palette. Magazine editorial photography style with sophisticated simplicity.',
-    analog: 'Retro Analog - Vintage film aesthetic with grain, warm tones, and nostalgic feel. Film camera look with slight imperfections. 35mm film photography vibe with retro color grading.'
+    modern: 'Modern & Clean - Professional footage with smooth camera movements, crisp product shots, bright lighting. Contemporary tech demo style with clean UI screens, modern environments, and polished production quality.',
+    cinematic: 'Cinematic - Hollywood-quality footage with dramatic lighting, depth of field, film-like color grading. Professional camera movements (dollies, cranes), establishing shots, and artistic composition. Documentary meets commercial.',
+    minimalist: 'Minimalist - Simple, elegant compositions with lots of negative space. Limited color palette, focus on essential elements only. Clean backgrounds, geometric framing, architectural photography style with sophisticated restraint.',
+    animated: 'Motion Graphics Style - Video footage with dynamic camera movements that mimic animation. Fast-paced cuts, smooth transitions, overlay graphics/text, kinetic typography. Modern explainer video aesthetic with screen recordings and UI demonstrations.',
+    analog: 'Retro Film - Vintage 35mm film aesthetic with natural grain, warm color temperature, slight vignetting. Authentic film camera imperfections, nostalgic 70s-90s commercial vibe. Practical lighting with warm tungsten tones.'
   };
-  return aesthetics[style] || aesthetics.animated;
+  return aesthetics[style] || aesthetics.modern;
 }
 
 interface StylePreset {
