@@ -93,7 +93,26 @@ Given the user's product information and style preferences, create a detailed, c
 4. Creates emotional connection with the target audience
 5. Makes the video impossible to replicate without understanding the specific business
 
-Return a JSON object with the enhanced prompt and production details.`;
+CRITICAL: Return a JSON object with this EXACT structure:
+{
+  "enhancedPrompt": "A single string containing the complete video prompt with all details",
+  "cinematicElements": {
+    "lighting": "description of lighting",
+    "cameraWork": "description of camera work",
+    "colorGrading": "description of color grading",
+    "transitions": "description of transitions"
+  },
+  "sceneBreakdown": [
+    {
+      "timing": "0-3s",
+      "description": "scene description",
+      "visualDetails": "visual details",
+      "emotionalTone": "emotional tone"
+    }
+  ]
+}
+
+The "enhancedPrompt" field MUST be a plain string, NOT an object or nested structure.`;
 
   const userPrompt = `Create a cinematic video prompt for this product:
 
@@ -181,9 +200,28 @@ CRITICAL: The video must clearly show what ${input.websiteData.title} DOES - dem
       return buildFallbackPrompt(input);
     }
 
+    // CRITICAL FIX: Validate that enhancedPrompt is a string, not an object
+    let enhancedPromptString: string;
+    if (typeof orchestratedContent.enhancedPrompt === 'string') {
+      enhancedPromptString = orchestratedContent.enhancedPrompt;
+    } else if (typeof orchestratedContent.enhancedPrompt === 'object') {
+      console.log('[orchestrator] AI returned enhancedPrompt as object, attempting to serialize');
+      // Try to extract the prompt from common object structures
+      if (orchestratedContent.enhancedPrompt.prompt) {
+        enhancedPromptString = orchestratedContent.enhancedPrompt.prompt;
+      } else {
+        // Fallback: serialize the entire object structure as a readable string
+        enhancedPromptString = JSON.stringify(orchestratedContent.enhancedPrompt, null, 2);
+        console.log('[orchestrator] Serialized object prompt');
+      }
+    } else {
+      console.log('[orchestrator] enhancedPrompt has invalid type, using fallback');
+      return buildFallbackPrompt(input);
+    }
+
     // Validate and structure the response
     const result: OrchestratedPrompt = {
-      enhancedPrompt: orchestratedContent.enhancedPrompt,
+      enhancedPrompt: enhancedPromptString,
       cinematicElements: orchestratedContent.cinematicElements || {
         lighting: 'Natural, warm golden hour lighting',
         cameraWork: 'Steady handheld with intentional movement',
