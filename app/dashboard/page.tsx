@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client"
 import { VideoGrid } from "@/components/dashboard/video-grid"
 import { VideoFilters } from "@/components/dashboard/video-filters"
 import { Button } from "@/components/ui/button"
+import { Header } from "@/components/header"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import type { User } from "@supabase/supabase-js"
@@ -148,7 +149,31 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <Header />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-24">
+        {/* Welcome Banner */}
+        <div className="mb-6 p-6 rounded-lg bg-gradient-to-r from-primary/10 via-primary/5 to-background border border-primary/20">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-foreground mb-1">
+                Welcome back{user.user_metadata?.full_name ? `, ${user.user_metadata.full_name}` : ""}!
+              </h2>
+              <p className="text-muted-foreground">
+                {videos.length === 0
+                  ? "Ready to create your first demo video?"
+                  : `You have ${videos.length} video${videos.length === 1 ? "" : "s"} in your library`}
+              </p>
+            </div>
+            <div className="hidden sm:flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-xs text-muted-foreground mb-1">Videos Used</p>
+                <p className="text-2xl font-bold text-foreground">0 / 1</p>
+                <p className="text-xs text-muted-foreground">Free Trial</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-2">Video Dashboard</h1>

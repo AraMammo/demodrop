@@ -9,6 +9,7 @@ import { RemotionVideoPlayer } from "@/components/video/remotion-video-player"
 import { VideoActions } from "@/components/video/video-actions"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Header } from "@/components/header"
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
 
@@ -128,7 +129,8 @@ export default function VideoDetailPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-6xl mx-auto px-4 py-12">
+      <Header />
+      <div className="max-w-6xl mx-auto px-4 py-12 pt-24">
         <div className="mb-6">
           <Link href="/dashboard">
             <Button variant="ghost">← Back to Dashboard</Button>
