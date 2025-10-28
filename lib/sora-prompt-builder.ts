@@ -150,12 +150,17 @@ THE VIDEO MUST DEMONSTRATE THIS EXACT WORKFLOW AND TRANSFORMATION.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ` : ''}
 
-CRITICAL TIMING CONSTRAINT:
-- Total video duration: EXACTLY ${videoDuration} seconds
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⏱️ CRITICAL TIMING CONSTRAINT (HARD LIMIT - NON-NEGOTIABLE):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Total video duration: EXACTLY ${videoDuration} seconds - NOT ONE SECOND LONGER
 - Any voiceover/narration MUST complete within ${videoDuration} seconds
-- Script should be ${getWordCountForDuration(videoDuration)} words maximum (at 2.5 words per second)
-- Pacing must feel natural, not rushed
-- All scenes and transitions must fit within the ${videoDuration}-second limit
+- HARD WORD LIMIT: Maximum ${getWordCountForDuration(videoDuration)} words for entire script
+  (Calculation: ${videoDuration}s × 2.5 words/sec × 0.8 buffer = ${getWordCountForDuration(videoDuration)} words)
+- If voiceover exceeds ${getWordCountForDuration(videoDuration)} words, it WILL NOT FIT in ${videoDuration} seconds
+- Pacing must feel natural, not rushed - prefer FEWER words over cramming
+- All scenes, transitions, AND narration must fit within the ${videoDuration}-second limit
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ${videoDuration <= 12 ? `
 12-SECOND VIDEO BEST PRACTICES:
 - Make first 2 seconds COUNT - immediate brand recognition with logo and primary brand color
@@ -210,13 +215,16 @@ VIDEO-SPECIFIC GUIDANCE FROM AI ANALYSIS:
 - CRITICAL CALLOUT: ${websiteData.productUnderstanding.videoGuidance.callout}
 ` : ''}
 
-VOICEOVER GUIDANCE:
+VOICEOVER GUIDANCE (STRICTLY ENFORCE WORD LIMIT):
 - Keep narration concise and impactful
-- Maximum ${getWordCountForDuration(videoDuration)} words total${videoDuration <= 12 ? ` (only ${getWordCountForDuration(videoDuration)} words - make EVERY word count!)` : ''}
-- Allow time for visual moments without narration
+- ABSOLUTE MAXIMUM: ${getWordCountForDuration(videoDuration)} words total${videoDuration <= 12 ? ` (only ${getWordCountForDuration(videoDuration)} words - make EVERY word count!)` : ''}
+- Count every single word - if script has more than ${getWordCountForDuration(videoDuration)} words, CUT IT DOWN
+- Allow time for visual moments without narration (20% of video should have no talking)
 - Natural pauses between key points
 - Must complete before the ${videoDuration}-second mark
-${videoDuration <= 12 ? `- For ${videoDuration}s: Consider using just a single powerful tagline (5-8 words) rather than full narration` : ''}
+${videoDuration <= 12 ? `- For ${videoDuration}s: Strongly prefer a single powerful tagline (5-8 words) over longer narration
+- Example good 12s scripts: "Transform chaos into clarity" (4 words), "Your data, finally understood" (4 words)
+- Example BAD 12s script: A 30+ word paragraph trying to explain everything` : ''}
 
 ${customInstructions ? `SPECIAL INSTRUCTIONS:\n${customInstructions}\n` : ''}
 ${videoStyle ? `
@@ -225,6 +233,16 @@ ${getAestheticDescription(videoStyle)}
 - Apply this visual aesthetic throughout the entire video
 - Balance aesthetic style with brand identity - both must be clearly visible
 ` : ''}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ FINAL REMINDER - TIMING CONSTRAINTS (DO NOT EXCEED):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Total Duration: ${videoDuration} seconds MAXIMUM
+Voiceover Word Limit: ${getWordCountForDuration(videoDuration)} words MAXIMUM
+If the narration script exceeds ${getWordCountForDuration(videoDuration)} words, it will run past ${videoDuration} seconds.
+Prefer shorter, punchier narration over lengthy explanations.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 Technical requirements:
 - Aspect ratio: 16:9
 - Resolution: 1080p
