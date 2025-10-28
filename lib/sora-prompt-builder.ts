@@ -44,58 +44,67 @@ interface StylePreset {
 export const STYLE_PRESETS: Record<string, StylePreset> = {
   'enterprise-saas': {
     name: 'Enterprise SaaS',
-    duration: 30,
+    duration: 12,
     pacing_style: 'Steady, confident, measured',
     tone: 'Professional, authoritative, data-driven',
     visual_aesthetic: 'Clean interfaces, dashboard screenshots, professional office environments',
     color_scheme: 'Corporate blues, grays, whites. Avoid bright colors.',
-    scene_structure: `Scene 1 (0-6s): Problem statement - show professional struggling with current solution
-Scene 2 (6-12s): Product interface - smooth navigation through key features
-Scene 3 (12-18s): Data visualization - charts, metrics, ROI indicators
-Scene 4 (18-24s): Team collaboration - multiple users benefiting
-Scene 5 (24-30s): Success state - satisfied professional, clear results`,
+    scene_structure: `Scene 1 (0-3s): Problem statement - show professional struggling with current solution
+Scene 2 (3-7s): Product interface - smooth navigation through key features
+Scene 3 (7-10s): Data visualization - charts, metrics, ROI indicators
+Scene 4 (10-12s): Success state - satisfied professional, clear results`,
   },
-  
+
   'startup-energy': {
     name: 'Startup Energy',
-    duration: 30,
+    duration: 12,
     pacing_style: 'Fast, dynamic, high-energy',
     tone: 'Conversational, innovative, founder-led',
     visual_aesthetic: 'Modern workspaces, vibrant colors, young professionals, tech-forward',
     color_scheme: 'Bold primary colors, high contrast, energetic palette',
-    scene_structure: `Scene 1 (0-5s): Hook - dynamic problem visualization, fast cuts
-Scene 2 (5-10s): Solution reveal - product in action, quick feature showcase
-Scene 3 (10-18s): Use cases - rapid-fire examples of product solving problems
-Scene 4 (18-24s): Founder authenticity - real people, real results
-Scene 5 (24-30s): Call to action - forward momentum, growth trajectory`,
+    scene_structure: `Scene 1 (0-3s): Hook - dynamic problem visualization, fast cuts
+Scene 2 (3-7s): Solution reveal - product in action, quick feature showcase
+Scene 3 (7-10s): Use cases - rapid-fire examples of product solving problems
+Scene 4 (10-12s): Call to action - forward momentum, growth trajectory`,
   },
-  
+
   'product-demo': {
     name: 'Product Demo',
-    duration: 45,
+    duration: 12,
     pacing_style: 'Clear, instructional, methodical',
     tone: 'Explanatory, technical but accessible',
     visual_aesthetic: 'Screen recordings, UI focus, feature callouts',
     color_scheme: 'Match product interface colors. Clean and functional.',
-    scene_structure: `Scene 1 (0-8s): Problem context - show the pain point clearly
-Scene 2 (8-20s): Feature 1 - detailed walkthrough with UI focus
-Scene 3 (20-32s): Feature 2 - show integration or key capability
-Scene 4 (32-40s): Feature 3 - demonstrate ease of use
-Scene 5 (40-45s): Outcome - show final result and value delivered`,
+    scene_structure: `Scene 1 (0-3s): Problem context - show the pain point clearly
+Scene 2 (3-7s): Feature 1 - detailed walkthrough with UI focus
+Scene 3 (7-10s): Feature 2 - show integration or key capability
+Scene 4 (10-12s): Outcome - show final result and value delivered`,
   },
-  
+
   'brand-story': {
     name: 'Brand Story',
-    duration: 40,
+    duration: 12,
     pacing_style: 'Thoughtful, human, emotionally resonant',
     tone: 'Authentic, empathetic, mission-driven',
     visual_aesthetic: 'Real people, genuine moments, warm lighting, human connection',
     color_scheme: 'Warm, inviting colors. Natural lighting. Earth tones.',
-    scene_structure: `Scene 1 (0-8s): The founder's why - origin story or mission
-Scene 2 (8-16s): Real customer stories - testimonial-style moments
-Scene 3 (16-26s): Product in real life - authentic use cases
-Scene 4 (26-34s): Community/impact - show broader effect
-Scene 5 (34-40s): Invitation - join the mission, be part of the story`,
+    scene_structure: `Scene 1 (0-3s): The founder's why - origin story or mission
+Scene 2 (3-7s): Real customer stories - testimonial-style moments
+Scene 3 (7-10s): Product in real life - authentic use cases
+Scene 4 (10-12s): Invitation - join the mission, be part of the story`,
+  },
+
+  'screen-explainer': {
+    name: 'Screen Recording Explainer',
+    duration: 12,
+    pacing_style: 'Clear, tutorial-style, step-by-step',
+    tone: 'Educational, helpful, straightforward',
+    visual_aesthetic: 'SCREEN RECORDINGS ONLY - NO PEOPLE. Clean UI demonstrations, mouse cursor movements, feature highlights, smooth screen transitions',
+    color_scheme: 'Match product interface. High contrast for readability.',
+    scene_structure: `Scene 1 (0-3s): Show main dashboard or landing screen - establish the interface
+Scene 2 (3-7s): Walk through primary workflow - cursor clicking through key actions
+Scene 3 (7-10s): Demonstrate key feature - show the transformation/result on screen
+Scene 4 (10-12s): Final outcome screen - completed task, success state`,
   }
 };
 
@@ -199,10 +208,24 @@ BRAND IDENTITY (CRITICAL - MUST BE ON-BRAND):
 ${brand.logoUrl ? `- Company logo: Show the actual ${businessName} logo from ${brand.logoUrl}` : `- Branding: Use ${businessName} text/wordmark in brand colors (${brand.colors[0]}) - do NOT attempt to generate or create a logo`}
 
 VISUAL STYLE:
-- Aesthetic: ${preset.visual_aesthetic} combined with ${brand.visualStyle}
+- Aesthetic: ${preset.visual_aesthetic}${stylePreset !== 'screen-explainer' ? ` combined with ${brand.visualStyle}` : ''}
 - Color palette: PRIMARY USE ${brand.colors[0]}, SECONDARY ${brand.colors[1]}, ACCENT ${brand.colors[2] || brand.colors[0]}
 - Pacing: ${preset.pacing_style}
-- Tone: ${preset.tone} with ${brand.tone} influence
+- Tone: ${preset.tone}${stylePreset !== 'screen-explainer' ? ` with ${brand.tone} influence` : ''}
+${stylePreset === 'screen-explainer' ? `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ CRITICAL: SCREEN RECORDING EXPLAINER - NO PEOPLE ALLOWED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- DO NOT include any people, faces, hands, or human figures in ANY scene
+- ONLY show computer screens, UI interfaces, software applications
+- Focus on screen captures, cursor movements, UI interactions
+- Show actual product interface, not people using it
+- Think: Screen recording tutorial, NOT marketing video with actors
+- Example: Show dashboard loading → user clicking through menu → feature activating
+- NO shots of offices, workspaces, or people at computers
+- 100% SCREEN CONTENT ONLY - treat this like a screen recording tutorial
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+` : ''}
 
 SCENE STRUCTURE:
 ${generateSceneStructure(videoDuration, preset.pacing_style, features, businessName, websiteData.productUnderstanding)}

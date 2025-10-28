@@ -5,18 +5,22 @@ import { VideoComposition } from '@/remotion/VideoComposition';
 
 interface RemotionVideoPlayerProps {
   videoUrl: string;
+  durationSeconds?: number; // Optional duration in seconds, defaults to 12
 }
 
-export function RemotionVideoPlayer({ videoUrl }: RemotionVideoPlayerProps) {
+export function RemotionVideoPlayer({ videoUrl, durationSeconds = 12 }: RemotionVideoPlayerProps) {
+  const fps = 30;
+  const durationInFrames = durationSeconds * fps; // e.g., 12 seconds * 30fps = 360 frames
+
   return (
     <div className="aspect-video bg-black">
       <Player
         component={VideoComposition}
         inputProps={{ videoUrl }}
-        durationInFrames={900} // 30 seconds at 30fps
+        durationInFrames={durationInFrames}
         compositionWidth={1920}
         compositionHeight={1080}
-        fps={30}
+        fps={fps}
         style={{
           width: '100%',
           height: '100%',

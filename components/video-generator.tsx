@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card } from "@/components/ui/card"
+import { FileUpload } from "@/components/ui/file-upload"
 import type { User } from "@supabase/supabase-js"
 
 type GenerationStatus = "idle" | "generating" | "complete" | "error"
@@ -63,6 +64,8 @@ export function VideoGenerator() {
   const [stylePreset, setStylePreset] = useState("product-demo")
   const [videoStyle, setVideoStyle] = useState("modern")
   const [customInstructions, setCustomInstructions] = useState("")
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [additionalMedia, setAdditionalMedia] = useState<File[]>([])
   const [state, setState] = useState<GenerationState>({
     status: "idle",
     progress: 0,
@@ -139,6 +142,13 @@ export function VideoGenerator() {
     })
 
     try {
+      // Prepare custom instructions with logo note if uploaded
+      let enhancedInstructions = customInstructions
+      if (logoFile) {
+        const logoNote = logoFile ? `\n\nIMPORTANT: User has uploaded a custom company logo (${logoFile.name}). Please show this logo prominently in the video, especially in the opening and closing scenes.` : ''
+        enhancedInstructions = customInstructions + logoNote
+      }
+
       const response = await fetch("/api/generate-video", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -146,7 +156,8 @@ export function VideoGenerator() {
           websiteUrl,
           stylePreset,
           videoStyle,
-          customInstructions,
+          customInstructions: enhancedInstructions,
+          hasCustomLogo: !!logoFile,
         }),
       })
 
@@ -392,6 +403,7 @@ export function VideoGenerator() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="product-demo">Product Demo</SelectItem>
+                    <SelectItem value="screen-explainer">Screen Recording Explainer (No People)</SelectItem>
                     <SelectItem value="enterprise-saas">Enterprise SaaS</SelectItem>
                     <SelectItem value="startup-energy">Startup Energy</SelectItem>
                     <SelectItem value="brand-story">Brand Story</SelectItem>
@@ -453,6 +465,29 @@ export function VideoGenerator() {
                   rows={4}
                   className="resize-none"
                 />
+              </div>
+
+              <div className="space-y-4 p-4 border rounded-lg bg-muted/20">
+                <h3 className="text-sm font-semibold">Custom Media (Optional)</h3>
+                <p className="text-xs text-muted-foreground">
+                  Upload your logo and additional images to include in the video
+                </p>
+
+                <FileUpload
+                  label="Company Logo"
+                  description="Upload your logo to appear in the video (PNG, JPG, SVG)"
+                  accept="image/*"
+                  maxSizeMB={5}
+                  onFileSelect={setLogoFile}
+                  currentFile={logoFile}
+                  disabled={state.status === "generating"}
+                />
+
+                <div className="pt-2 border-t">
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Additional media support (screenshots, product images, etc.) coming soon
+                  </p>
+                </div>
               </div>
 
               {state.status === "generating" && (
