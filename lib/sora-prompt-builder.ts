@@ -1,3 +1,6 @@
+import type { ProductUnderstanding } from './product-analyzer';
+import type { ParsedContent } from './content-parser';
+
 interface WebsiteData {
   title: string;
   heroText: string;
@@ -12,6 +15,8 @@ interface WebsiteData {
     keyMessage: string;
     logoUrl?: string;
   };
+  productUnderstanding?: ProductUnderstanding;
+  parsedContent?: ParsedContent;
 }
 
 // Map video aesthetic style to detailed description
