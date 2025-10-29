@@ -244,8 +244,11 @@ VOICEOVER GUIDANCE (STRICTLY ENFORCE WORD LIMIT):
 - Count every single word - if script has more than ${getWordCountForDuration(videoDuration)} words, CUT IT DOWN
 - Allow time for visual moments without narration (20% of video should have no talking)
 - Natural pauses between key points
-- Must complete before the ${videoDuration}-second mark
-${videoDuration <= 12 ? `- For ${videoDuration}s: Strongly prefer a single powerful tagline (5-8 words) over longer narration
+- ⚠️ CRITICAL: Voiceover must COMPLETE by second ${videoDuration - 1}, NOT second ${videoDuration}
+- Leave the final second (${videoDuration - 1}s-${videoDuration}s) for visual-only wrap-up with no narration
+- Never cut off mid-word or mid-sentence - plan timing so last word finishes by ${videoDuration - 1}s
+${videoDuration <= 12 ? `- For ${videoDuration}s videos: Last word MUST be spoken before ${videoDuration - 1}-second mark
+- Strongly prefer a single powerful tagline (5-8 words) over longer narration
 - Example good 12s scripts: "Transform chaos into clarity" (4 words), "Your data, finally understood" (4 words)
 - Example BAD 12s script: A 30+ word paragraph trying to explain everything` : ''}
 
@@ -279,7 +282,9 @@ Technical requirements:
 function getWordCountForDuration(seconds: number): number {
   // Comfortable speaking pace is 2.5 words per second
   // But leave room for pauses and visual moments (80% of time for speaking)
-  return Math.floor(seconds * 2.5 * 0.8);
+  // CRITICAL: Subtract 1 second to ensure voiceover completes before video ends
+  const speakingTime = seconds - 1; // Leave final second for visual wrap-up
+  return Math.floor(speakingTime * 2.5 * 0.8);
 }
 
 function generateSceneStructure(duration: number, pacing: string, features: string[], businessName: string, productUnderstanding?: any): string {

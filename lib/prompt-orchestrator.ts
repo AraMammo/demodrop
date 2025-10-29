@@ -149,10 +149,11 @@ ${input.userInstructions || 'None provided - use your expertise to create the mo
 
 **CRITICAL TIMING CONSTRAINT:**
 - Duration: EXACTLY ${input.duration} seconds
-- Any voiceover/narration MUST complete within ${input.duration} seconds
-- Maximum ${Math.floor(input.duration * 2.5 * 0.8)} words for voiceover (comfortable speaking pace with pauses)
-- All scenes, transitions, and narration must fit within ${input.duration}-second limit
-- Pacing should feel natural, not rushed
+- ⚠️ VOICEOVER MUST COMPLETE BY SECOND ${input.duration - 1} - Leave final second for visual wrap-up
+- Maximum ${Math.floor((input.duration - 1) * 2.5 * 0.8)} words for voiceover (2.5 words/sec with pauses, ending 1 second early)
+- The last word must be spoken before the ${input.duration - 1}-second mark
+- All scenes and transitions must fit within ${input.duration}-second limit
+- Pacing should feel natural and complete, never cut off mid-word
 ${input.duration <= 12 ? `
 **12-SECOND VIDEO OPTIMIZATION:**
 Since this is a ${input.duration}-second video, every frame counts. Prioritize:
@@ -162,7 +163,8 @@ Since this is a ${input.duration}-second video, every frame counts. Prioritize:
 4. Clear visual progression that tells a story even without sound
 5. Memorable closing moment that reinforces brand identity
 6. Avoid excessive scene changes - aim for smooth, purposeful transitions
-7. Make every second count - no filler, no generic footage` : ''}
+7. Make every second count - no filler, no generic footage
+8. ⚠️ CRITICAL: Voiceover must finish completely by second ${input.duration - 1} (11s for 12s videos)` : ''}
 
 Transform this into a production-ready video prompt that includes:
 1. Specific visual metaphors unique to this business
@@ -174,11 +176,13 @@ Transform this into a production-ready video prompt that includes:
    - Show WHAT the product does, not just that it exists
    - Example: Don't say "user interacts with interface" - say "user records voice note and watches AI transform it into polished blog post"
 6. Emotional beats that build viewer connection
-7. Concise voiceover script (max ${Math.floor(input.duration * 2.5 * 0.8)} words) with natural pauses
+7. Concise voiceover script (max ${Math.floor((input.duration - 1) * 2.5 * 0.8)} words) with natural pauses
    - Script should reference specific features/capabilities, not generic marketing speak
+   - ⚠️ CRITICAL: Last word must be spoken before second ${input.duration - 1} - leave final second for visual only
 
 Make it cinematic. Make it unique. Make it impossible to confuse with any other company's video.
 CRITICAL: Ensure all timing fits within the ${input.duration}-second constraint.
+CRITICAL: Voiceover must COMPLETE by second ${input.duration - 1} - never cut off mid-sentence.
 CRITICAL: The video must clearly show what ${input.websiteData.title} DOES - demonstrate the actual features: ${input.websiteData.features.slice(0, 3).join(', ')}`;
 
   try {
@@ -250,8 +254,9 @@ function buildFallbackPrompt(input: OrchestrationInput): OrchestratedPrompt {
   const businessName = input.websiteData.title;
   const industry = input.websiteData.industry;
   const tone = input.stylePreset.tone;
-  const maxWords = Math.floor(input.duration * 2.5 * 0.8);
+  const maxWords = Math.floor((input.duration - 1) * 2.5 * 0.8); // Leave 1 second buffer
   const brand = input.websiteData.brand;
+  const voiceoverEndTime = input.duration - 1; // Voiceover must end 1 second before video ends
 
   return {
     enhancedPrompt: `Create a ${input.duration}-second cinematic demo video for ${businessName}, a ${industry} company.
@@ -266,10 +271,12 @@ The video MUST visually demonstrate this exact functionality.
 
 CRITICAL TIMING CONSTRAINT:
 - Duration: EXACTLY ${input.duration} seconds
-- Any voiceover/narration MUST complete within ${input.duration} seconds
-- Maximum ${maxWords} words for voiceover (2.5 words/sec with pauses)
+- ⚠️ VOICEOVER MUST COMPLETE BY SECOND ${voiceoverEndTime} - Leave final second for visual wrap-up
+- Maximum ${maxWords} words for voiceover (2.5 words/sec with pauses, ending at ${voiceoverEndTime}s)
+- The last word must be spoken before the ${voiceoverEndTime}-second mark
 - All scenes and transitions must fit within ${input.duration}-second limit
-${input.duration <= 12 ? `- For ${input.duration}-second videos: Immediate brand visibility (0-2s), one clear message, strong hook, memorable closing` : ''}
+- Never cut off voiceover mid-word or mid-sentence
+${input.duration <= 12 ? `- For ${input.duration}-second videos: Immediate brand visibility (0-2s), one clear message, strong hook, memorable closing, voiceover ends by ${voiceoverEndTime}s` : ''}
 
 BRAND IDENTITY (MUST BE ON-BRAND):
 - Brand Colors: ${brand.colors.join(', ')} - Use these exact colors throughout
@@ -301,7 +308,8 @@ ${input.duration <= 12 ? `
 Voiceover Script (Maximum ${maxWords} words):
 - Concise, impactful narration
 - Natural pauses between key points
-- Must complete before ${input.duration}-second mark
+- ⚠️ CRITICAL: Must complete BEFORE ${voiceoverEndTime}-second mark (last word at ${voiceoverEndTime}s, not ${input.duration}s)
+- Never cut off mid-word - leave final second (${voiceoverEndTime}s-${input.duration}s) for visual only
 
 Cinematography:
 - Use natural lighting with practical sources
