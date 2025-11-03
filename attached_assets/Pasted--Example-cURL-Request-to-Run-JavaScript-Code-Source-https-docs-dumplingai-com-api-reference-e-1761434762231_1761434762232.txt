@@ -1,0 +1,1371 @@
+### Example cURL Request to Run JavaScript Code
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/run-js-code
+
+An example `curl` command demonstrating how to make a POST request to the Run JavaScript Code API, including necessary headers and a JSON request body to install axios and log a JSON object.
+
+```curl
+curl -X POST https://app.dumplingai.com/api/v1/run-js-code \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_API_KEY" \
+-d '{
+  "commands": "npm install axios",
+  "code": "console.log(JSON.stringify({ hello: \"world\" }));",
+  "parseJson": true
+}'
+```
+
+--------------------------------
+
+### Make First DumplingAI Scrape API Request with cURL
+
+Source: https://docs.dumplingai.com/quickstart
+
+Demonstrates how to make a simple API request to the DumplingAI 'scrape' endpoint using cURL. This example extracts content from a specified URL in markdown format, requiring an API key for authentication.
+
+```cURL
+curl -X POST https://app.dumplingai.com/api/v1/scrape \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "url": "https://example.com",
+    "format": "markdown"
+  }'
+```
+
+--------------------------------
+
+### Example cURL Request for Get Autocomplete API
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/get-autocomplete
+
+Provides a command-line example using cURL to demonstrate how to call the Get Autocomplete API with a JSON request body, including required headers and optional parameters.
+
+```bash
+curl -X POST https://app.dumplingai.com/api/v1/get-autocomplete \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_API_KEY" \
+-d '{
+  "query": "DumplingAI",
+  "location": "Sydney",
+  "country": "AU",
+  "language": "en"
+}'
+```
+
+--------------------------------
+
+### Example cURL Request to Run Python Code with Pandas
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/run-python-code
+
+A cURL command demonstrating how to call the Run Python Code endpoint, including necessary headers, API key authentication, and a request body that installs pandas and executes Python code to convert a DataFrame to JSON.
+
+```curl
+curl -X POST https://app.dumplingai.com/api/v1/run-python-code \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_API_KEY" \
+-d '{
+  "commands": "pip install pandas",
+  "code": "import pandas as pd\ndata = {\"name\": [\"John\", \"Jane\"], \"age\": [30, 25]}\ndf = pd.DataFrame(data)\nprint(df.to_json())",
+  "parseJson": true
+}'
+```
+
+--------------------------------
+
+### Example cURL Request for Search Knowledge Base
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/search-knowledge-base
+
+A practical example demonstrating how to make a POST request to the Search Knowledge Base endpoint using cURL, including headers and a sample JSON payload.
+
+```curl
+curl -X POST https://app.dumplingai.com/api/v1/knowledge-bases/query \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "knowledgeBaseId": "kb123456",
+    "query": "What are our company holiday policies?",
+    "resultCount": 5
+  }'
+```
+
+--------------------------------
+
+### Fetch Google Reviews API Example Request
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/get-google-reviews
+
+cURL command demonstrating how to make a POST request to the /api/v1/get-google-reviews endpoint. It includes necessary headers for content type and authorization, along with a JSON request body specifying search parameters like keyword, number of reviews, language, and sort order.
+
+```cURL
+curl -X POST https://app.dumplingai.com/api/v1/get-google-reviews \n-H "Content-Type: application/json" \n-H "Authorization: Bearer YOUR_API_KEY" \n-d '{\n  "keyword": "London Wines",\n  "reviews": 20,\n  "language": "en",\n  "sortBy": "highest_rating"\n}'
+```
+
+--------------------------------
+
+### Example JSON Success Response for Run Python Code API
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/run-python-code
+
+An example of the JSON response received after successfully executing the Python code from the example request, showing the parsed JSON output in the 'stdout' field.
+
+```json
+{
+  "logs": {
+    "stdout": {
+      "name": { "0": "John", "1": "Jane" },
+      "age": { "0": 30, "1": 25 }
+    },
+    "stderr": []
+  }
+}
+```
+
+--------------------------------
+
+### Example Successful JSON Response for YouTube Transcript API
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/get-youtube-transcript
+
+This JSON object provides an example of a successful response from the YouTube transcript API. It shows a partial transcript with timestamps included and the detected language of the video content.
+
+```json
+{
+  "transcript": "00:00 - Welcome to this video.\n00:05 - Today we'll be discussing...",
+  "language": "en"
+}
+```
+
+--------------------------------
+
+### Node.js Fetch Example for Get TikTok Profile API
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/get-tiktok-profile
+
+Demonstrates how to call the DumplingAI 'Get TikTok Profile' API using Node.js with the fetch API. It handles API key authentication, JSON body serialization, and error handling for successful and failed requests.
+
+```Node.js
+async function getTikTokProfile(apiKey, handle) {
+  const url = 'https://app.dumplingai.com/api/v1/get-tiktok-profile';
+  const options = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({ handle })
+  };
+
+  try {
+    const response = await fetch(url, options);
+    const data = await response.json();
+    if (!response.ok) {
+      console.error(`Error: ${response.status}`, data);
+      return null;
+    }
+    console.log(data);
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch TikTok profile:', error);
+    return null;
+  }
+}
+
+// Example usage:
+// getTikTokProfile('YOUR_API_KEY', 'stoolpresidente');
+```
+
+--------------------------------
+
+### Example cURL Request for DumplingAI Screenshot API
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/screenshot
+
+An example demonstrating how to make a POST request to the DumplingAI Screenshot API using cURL, including setting Content-Type and Authorization headers, and providing a sample JSON request body with various parameters.
+
+```curl
+curl -X POST https://app.dumplingai.com/api/v1/screenshot \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_API_KEY" \
+-d '{
+  "url": "https://example.com",
+  "fullPage": true,
+  "viewport": {
+    "width": 1920,
+    "height": 1080
+  },
+  "blockCookieBanners": true,
+  "wait": 1000,
+  "autoScroll": true
+}'
+```
+
+--------------------------------
+
+### Example `curl` Request to Add to Knowledge Base
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/add-to-knowledge-base
+
+A command-line example demonstrating how to make a POST request to the 'Add to Knowledge Base' endpoint using `curl`. It includes setting the 'Content-Type' and 'Authorization' headers, along with a sample JSON request body.
+
+```bash
+curl -X POST https://app.dumplingai.com/api/v1/knowledge-bases/add \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_API_KEY" \
+-d '{
+  "knowledgeBaseId": "kb123456",
+  "name": "Company Guidelines",
+  "content": "This document outlines our company guidelines..."
+}'
+```
+
+--------------------------------
+
+### Example cURL Request for TikTok Profile API
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/get-tiktok-profile
+
+This cURL command demonstrates how to make a POST request to the TikTok profile API, including setting authorization and content type headers, and providing the 'handle' parameter in the request body.
+
+```cURL
+curl -X POST \
+  https://app.dumplingai.com/api/v1/get-tiktok-profile \
+  -H 'Authorization: Bearer YOUR_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{ "handle": "stoolpresidente" }'
+```
+
+--------------------------------
+
+### DumplingAI API Overview and Guidelines
+
+Source: https://docs.dumplingai.com/api-reference/introduction
+
+This section provides a comprehensive overview of the DumplingAI API's core principles, including authentication requirements, base URL, standard response formats for both success and error scenarios, rate limiting policies, and API versioning information. It serves as a foundational guide for interacting with all DumplingAI API endpoints.
+
+```APIDOC
+DumplingAI API Reference:
+  - Authentication: All requests require an API key in the Authorization: Bearer YOUR_API_KEY header.
+  - Base URL: https://app.dumplingai.com
+  - Response Format: All responses are JSON.
+    - Success: {"data": { ... }, "status": "success"} with 2xx status code.
+    - Error: {"error": {"code": "...", "message": "..."}, "status": "error"} with 4xx/5xx status code.
+  - Rate Limiting: Applied based on subscription plan; 429 Too Many Requests on exceeding limits.
+  - Versioning: Current API version is v1. Explicitly specify version in requests.
+```
+
+--------------------------------
+
+### Example cURL Request to Get YouTube Transcript
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/get-youtube-transcript
+
+This cURL command demonstrates how to make a POST request to the `get-youtube-transcript` API endpoint. It includes essential headers like Content-Type and Authorization, along with a JSON request body specifying the video URL and optional parameters for timestamps and language.
+
+```curl
+curl -X POST https://app.dumplingai.com/api/v1/get-youtube-transcript \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_API_KEY" \
+-d '{
+  "videoUrl": "https://www.youtube.com/watch?v=example",
+  "includeTimestamps": true,
+  "timestampsToCombine": 5,
+  "preferredLanguage": "en"
+}'
+```
+
+--------------------------------
+
+### Example cURL Request for DumplingAI Extract API
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/extract
+
+A practical example demonstrating how to invoke the DumplingAI Extract API using cURL, specifying the content type, authorization header, and a sample request body with a URL and a simple extraction schema for product details.
+
+```curl
+curl -X POST https://app.dumplingai.com/api/v1/extract \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_API_KEY" \
+-d '{
+  "url": "https://example.com",
+  "schema": {
+    "title": "string",
+    "description": "string",
+    "price": "number",
+    "rating": "number"
+  }
+}'
+```
+
+--------------------------------
+
+### Basic Web Scraping with DumplingAI API
+
+Source: https://docs.dumplingai.com/guides
+
+This example demonstrates how to send a POST request to DumplingAI's `/api/v1/scrape` endpoint. It shows how to extract content from a URL in Markdown format with cleaning enabled, then prints the page title and a snippet of the content. An API key is required for authentication.
+
+```Node.js
+const axios = require('axios');
+
+async function scrapePage(url) {
+  try {
+    const response = await axios.post('https://app.dumplingai.com/api/v1/scrape',
+      {
+        url: url,
+        format: 'markdown',
+        cleaned: true
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer YOUR_API_KEY'
+        }
+      }
+    );
+
+    console.log('Page Title:', response.data.title);
+    console.log('Content:', response.data.content.substring(0, 500) + '...');
+    return response.data;
+  } catch (error) {
+    console.error('Error:', error.response ? error.response.data : error.message);
+  }
+}
+
+scrapePage('https://example.com');
+```
+
+--------------------------------
+
+### Example cURL Request for DumplingAI Scrape API
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/scrape
+
+A command-line example demonstrating how to invoke the DumplingAI Scrape API using cURL, including necessary headers and a JSON request body.
+
+```shell
+curl -X POST https://app.dumplingai.com/api/v1/scrape \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "url": "https://example.com",
+    "format": "markdown",
+    "cleaned": true,
+    "renderJs": true
+  }'
+```
+
+--------------------------------
+
+### Example JSON Response for DumplingAI Extract API
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/extract
+
+An illustrative example of the JSON data returned by the Extract API upon successful processing, showing a sample screenshot URL and the extracted structured data based on the provided schema, such as product title, description, price, and rating.
+
+```json
+{
+  "screenshotUrl": "https://storage.example.com/screenshots/abcdef123456.png",
+  "results": {
+    "title": "Example Product",
+    "description": "This is an example product description.",
+    "price": 29.99,
+    "rating": 4.5
+  }
+}
+```
+
+--------------------------------
+
+### Extract Video cURL Example Request
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/extract-video
+
+An example cURL command demonstrating how to make a POST request to the Extract Video API. It includes setting content type and authorization headers, and providing a JSON payload with input method, video URL, and prompt.
+
+```bash
+curl -X POST https://app.dumplingai.com/api/v1/extract-video \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_API_KEY" \
+-d '{
+  "inputMethod": "url",
+  "video": "https://example.com/sample-video.mp4",
+  "prompt": "Describe the main events in this video.",
+  "jsonMode": false
+}'
+```
+
+--------------------------------
+
+### Request TikTok Transcript API using Node.js
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/get-tiktok-transcript
+
+This Node.js example shows how to programmatically fetch a TikTok video transcript. It uses the `node-fetch` library to send a POST request, handles API key authentication, constructs the JSON request body, and includes basic error handling for the API response.
+
+```javascript
+import fetch from 'node-fetch';
+
+const apiKey = 'YOUR_API_KEY';
+const videoUrl = 'https://www.tiktok.com/@username/video/1234567890123456789';
+const preferredLanguage = 'es'; // Optional
+
+async function getTikTokTranscript() {
+  try {
+    const response = await fetch('https://app.dumplingai.com/api/v1/get-tiktok-transcript', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ videoUrl, preferredLanguage })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error(`Error: ${response.status}`, errorData);
+      return;
+    }
+
+    const data = await response.json();
+    console.log('TikTok Transcript Data:', data);
+  } catch (error) {
+    console.error('Failed to fetch TikTok transcript:', error);
+  }
+}
+
+getTikTokTranscript();
+```
+
+--------------------------------
+
+### Convert to PDF Example Request with cURL
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/convert-to-pdf
+
+Provides a practical example of how to call the Convert to PDF API endpoint using the cURL command-line tool. It demonstrates setting the 'Content-Type' and 'Authorization' headers, and passing the JSON request body with a URL-based input method.
+
+```bash
+curl -X POST https://app.dumplingai.com/api/v1/convert-to-pdf \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_API_KEY" \
+-d '{
+  "inputMethod": "url",
+  "file": "https://example.com/document.docx"
+}'
+```
+
+--------------------------------
+
+### Internal Server Error 500 Response
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/get-google-reviews
+
+Example JSON response returned when an internal server error occurs during the review fetching process, indicating a failure to retrieve Google reviews.
+
+```JSON
+{
+  "error": "Failed to fetch Google reviews: [error message]"
+}
+```
+
+--------------------------------
+
+### Integrate DumplingAI Agent with a Knowledge Base (Node.js)
+
+Source: https://docs.dumplingai.com/guides/tutorials/ai-agents
+
+This example illustrates how to enhance an agent's responses by first querying a knowledge base for relevant information and then providing that context to the agent. It involves two sequential `axios` POST requests: one to `/knowledge-bases/query` to retrieve context, and another to `/agents/generate-completion` where the retrieved context is injected into the system message for the agent.
+
+```Node.js
+async function askAgentWithKnowledgeBase(agentId, knowledgeBaseId, question) {
+  try {
+    // First, search the knowledge base for relevant information
+    const kbResponse = await axios.post(
+      'https://app.dumplingai.com/api/v1/knowledge-bases/query',
+      {
+        knowledgeBaseId: knowledgeBaseId,
+        query: question,
+        resultCount: 3
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer YOUR_API_KEY'
+        }
+      }
+    );
+
+    const context = kbResponse.data.results.map(result => result.content).join('\n\n');
+
+    // Then, ask the agent a question with the knowledge base context
+    const agentResponse = await axios.post(
+      'https://app.dumplingai.com/api/v1/agents/generate-completion',
+      {
+        messages: [
+          {
+            role: 'system',
+            content: `You are a knowledgeable assistant with expertise in the company's products. Use the following information to answer the user's question. If you don't know, say so.\n\nContext from knowledge base:\n${context}`
+          },
+          {
+            role: 'user',
+            content: question
+          }
+        ],
+        agentId: agentId,
+        parseJson: false
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer YOUR_API_KEY'
+        }
+      }
+    );
+
+    console.log('Answer with Knowledge Base:', agentResponse.data.text);
+    return agentResponse.data.text;
+  } catch (error) {
+    console.error('Error:', error.response ? error.response.data : error.message);
+  }
+}
+
+// Ask a question using the agent and knowledge base
+const knowledgeBaseId = 'your_kb_id'; // Replace with your knowledge base ID
+const answer = await askAgentWithKnowledgeBase(
+  agentId,
+  knowledgeBaseId,
+  'How do I reset my password?'
+);
+```
+
+--------------------------------
+
+### Example JSON Response for DumplingAI Screenshot API
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/screenshot
+
+A sample JSON response illustrating the successful output from the DumplingAI Screenshot API, containing the URL of the generated screenshot.
+
+```json
+{
+  "screenshotUrl": "https://storage.example.com/screenshots/abcdef123456.png"
+}
+```
+
+--------------------------------
+
+### Example Trim Video Success Response
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/trim-video
+
+A sample JSON response illustrating the typical output from a successful Trim Video API call, showing the URL of the trimmed video and the credits consumed.
+
+```json
+{
+  "trimmedVideoUrl": "https://storage.example.com/trimmed-videos/abcdef123456.mp4",
+  "creditsUsed": 5
+}
+```
+
+--------------------------------
+
+### Example cURL Request for Trim Video API
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/trim-video
+
+A practical cURL command demonstrating how to invoke the Trim Video API. It includes setting the content type, authorization header, and providing a sample JSON request body with a video URL and timestamps.
+
+```curl
+curl -X POST https://app.dumplingai.com/api/v1/trim-video \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_API_KEY" \
+-d '{
+  "videoUrl": "https://example.com/video.mp4",
+  "startTimestamp": "00:00:10",
+  "endTimestamp": "00:00:30"
+}'
+```
+
+--------------------------------
+
+### Basic Webpage Scraping with DumplingAI API (Node.js)
+
+Source: https://docs.dumplingai.com/guides/tutorials/web-scraping
+
+This example demonstrates how to perform a basic web scrape using the DumplingAI API. It sends a POST request to the `/api/v1/scrape` endpoint with a URL, specifies Markdown format, and enables content cleaning. The response data, including the page title and content, is then logged to the console.
+
+```Node.js
+const axios = require('axios');
+
+async function scrapePage(url) {
+  try {
+    const response = await axios.post('https://app.dumplingai.com/api/v1/scrape',
+      {
+        url: url,
+        format: 'markdown',
+        cleaned: true
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer YOUR_API_KEY'
+        }
+      }
+    );
+
+    console.log('Page Title:', response.data.title);
+    console.log('Content:', response.data.content.substring(0, 500) + '...');
+    return response.data;
+  } catch (error) {
+    console.error('Error:', error.response ? error.response.data : error.message);
+  }
+}
+
+scrapePage('https://example.com');
+```
+
+--------------------------------
+
+### Basic Interaction with DumplingAI Agent
+
+Source: https://docs.dumplingai.com/guides/tutorials/ai-agents
+
+This example demonstrates how to send a message to a DumplingAI agent and receive a response using an HTTP POST request. It shows the structure of the request body, including the user message, agent ID, and an optional thread ID for continuing conversations. It also specifies the required headers for content type and authorization with an API key.
+
+```Node.js
+const axios = require('axios');
+
+async function chatWithAgent(agentId, message, threadId = null) {
+  try {
+    const response = await axios.post(
+      'https://app.dumplingai.com/api/v1/agents/generate-completion',
+      {
+        messages: [
+          {
+            role: 'user',
+            content: message
+          }
+        ],
+        agentId: agentId,
+        threadId: threadId, // Optional, for continuing a conversation
+        parseJson: false
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer YOUR_API_KEY'
+        }
+      }
+    );
+
+    console.log('Agent Response:', response.data.text);
+    console.log('Thread ID:', response.data.threadId);
+    return response.data;
+  } catch (error) {
+    console.error('Error:', error.response ? error.response.data : error.message);
+  }
+}
+
+// Chat with the agent
+const agentId = 'your_agent_id'; // Replace with your agent ID
+const result = await chatWithAgent(agentId, 'Tell me about the features of your product.');
+```
+
+--------------------------------
+
+### Example Success Response for Run JavaScript Code API
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/run-js-code
+
+An example of the JSON response received after successfully executing the provided JavaScript code, showing a parsed JSON object in stdout and an empty stderr array.
+
+```APIDOC
+{
+  "logs": {
+    "stdout": { "hello": "world" },
+    "stderr": []
+  }
+}
+```
+
+--------------------------------
+
+### Get Autocomplete API Endpoint Definition
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/get-autocomplete
+
+Defines the HTTP method and URL for the Get Autocomplete API, which provides Google autocomplete suggestions.
+
+```APIDOC
+POST https://app.dumplingai.com/api/v1/get-autocomplete
+```
+
+--------------------------------
+
+### Get Supported Formats API Endpoint
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/convert-to-pdf
+
+Defines the HTTP GET endpoint used to retrieve a comprehensive list of all document formats that are supported by the Convert to PDF API for conversion.
+
+```APIDOC
+GET /api/v1/convert-to-pdf
+```
+
+--------------------------------
+
+### Example cURL Request for Extract Audio API
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/extract-audio
+
+Demonstrates how to make a POST request to the `extract-audio` endpoint using cURL, providing sample input parameters for URL-based audio extraction.
+
+```bash
+curl -X POST https://app.dumplingai.com/api/v1/extract-audio \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_API_KEY" \
+-d '{
+  "inputMethod": "url",
+  "audio": "https://example.com/sample-audio.mp3",
+  "prompt": "Summarize the main points discussed in this audio.",
+  "jsonMode": false
+}'
+```
+
+--------------------------------
+
+### Example cURL Request for DumplingAI Search API
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/search
+
+Demonstrates how to make a POST request to the DumplingAI search API endpoint. This example includes setting the Content-Type and Authorization headers, along with a JSON request body specifying the search query, country, language, date range, and scraping preferences.
+
+```bash
+curl -X POST https://app.dumplingai.com/api/v1/search \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_API_KEY" \
+-d '{
+  "query": "DumplingAI",
+  "country": "US",
+  "language": "en",
+  "dateRange": "pastMonth",
+  "scrapeResults": true,
+  "numResultsToScrape": 3,
+  "scrapeOptions": {
+    "format": "html",
+    "cleaned": false
+  }
+}'
+```
+
+--------------------------------
+
+### Example Successful Response for TikTok Transcript API
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/get-tiktok-transcript
+
+This JSON snippet illustrates a successful 200 OK response from the TikTok transcript API. It shows the `transcript` field containing WebVTT formatted text, along with the detected `language`, `id` of the video, and the `originalUrl`.
+
+```json
+{
+  "transcript": "WEBVTT\n\n00:00:00.120 --> 00:00:01.840\nThis is the first line of the transcript.\n\n00:00:02.000 --> 00:00:03.500\nAnd this is the second line.",
+  "language": "es",
+  "id": "7499229683859426602",
+  "originalUrl": "https://www.tiktok.com/@username/video/1234567890123456789"
+}
+```
+
+--------------------------------
+
+### Example cURL Request for DumplingAI Crawl Website API
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/crawl
+
+A practical cURL command demonstrating how to invoke the DumplingAI 'Crawl Website' API. This example shows how to set the HTTP method, endpoint URL, required headers, and a sample JSON payload for crawling a website.
+
+```Shell
+curl -X POST https://app.dumplingai.com/api/v1/crawl \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_API_KEY" \
+-d '{
+  "url": "https://example.com",
+  "limit": 10,
+  "depth": 3,
+  "format": "markdown"
+}'
+```
+
+--------------------------------
+
+### DumplingAI Get Google Reviews API Endpoint
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/get-google-reviews
+
+The HTTP POST endpoint for the Get Google Reviews API. All requests to this endpoint should use the POST method.
+
+```APIDOC
+POST https://app.dumplingai.com/api/v1/get-google-reviews
+```
+
+--------------------------------
+
+### Example cURL Request for Search Places API
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/search-places
+
+This example demonstrates how to make a POST request to the Search Places API using cURL. It includes setting the Content-Type and Authorization headers, along with a sample JSON request body for searching pizza restaurants in Chicago.
+
+```shell
+curl -X POST https://app.dumplingai.com/api/v1/search-places \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_API_KEY" \
+-d '{
+  "query": "pizza restaurants",
+  "country": "US",
+  "location": "Chicago, IL",
+  "language": "en"
+}'
+```
+
+--------------------------------
+
+### Example cURL Request for Generate Agent Completion
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/generate-agent-completion
+
+A cURL command demonstrating how to make a POST request to the 'Generate Agent Completion' endpoint, including setting headers for content type and authorization, and providing a sample JSON request body.
+
+```cURL
+curl -X POST https://app.dumplingai.com/api/v1/agents/generate-completion \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_API_KEY" \
+-d '{
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hello, can you help me with a task?"
+    }
+  ],
+  "agentId": "agent_123456",
+  "parseJson": false,
+  "threadId": "optional_thread_id"
+}'
+```
+
+--------------------------------
+
+### Extracting Links from Scraped HTML Content (Node.js)
+
+Source: https://docs.dumplingai.com/guides
+
+This Node.js example demonstrates how to process scraped HTML content using `cheerio` to extract specific information, such as all hyperlinks. It builds upon the `scrapePage` function to fetch HTML, then parses it to find and log the `href` and text of each `<a>` tag.
+
+```Node.js
+const cheerio = require('cheerio');
+
+async function extractLinks(url) {
+  const scrapedData = await scrapePage(url);
+
+  // For HTML format
+  if (scrapedData.format === 'html') {
+    const $ = cheerio.load(scrapedData.content);
+    const links = [];
+
+    $('a').each((i, element) => {
+      const href = $(element).attr('href');
+      const text = $(element).text().trim();
+      if (href) {
+        links.push({ href, text });
+      }
+    });
+
+    return links;
+  }
+
+  // For Markdown format, you would need a Markdown parser
+  return [];
+}
+
+extractLinks('https://example.com').then(links => {
+  console.log(`Found ${links.length} links:`);
+  links.slice(0, 10).forEach(link => {
+    console.log(`- ${link.text}: ${link.href}`);
+  });
+});
+```
+
+--------------------------------
+
+### DumplingAI Get Google Reviews API Bad Request Response (400) Schema
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/get-google-reviews
+
+JSON schema for a bad request error response (HTTP 400) from the Get Google Reviews API. This indicates that required parameters like 'keyword', 'cid', or 'placeId' were not provided.
+
+```APIDOC
+{
+  "error": "Either keyword, cid, or placeId must be provided"
+}
+```
+
+--------------------------------
+
+### Get Supported Audio Formats API Endpoint
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/extract-audio
+
+The HTTP GET endpoint to retrieve a list of supported audio formats for the `extract-audio` functionality.
+
+```APIDOC
+GET /api/v1/extract-audio
+```
+
+--------------------------------
+
+### Doc to Text API Example Request (cURL)
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/doc-to-text
+
+A cURL command demonstrating how to invoke the Doc to Text API with a sample PDF URL, including necessary headers and request body.
+
+```curl
+curl -X POST https://app.dumplingai.com/api/v1/doc-to-text \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_API_KEY" \
+-d '{
+  "inputMethod": "url",
+  "file": "https://example.com/sample.pdf"
+}'
+```
+
+--------------------------------
+
+### Example cURL Request for Extract Image API
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/extract-image
+
+Provides a cURL command example demonstrating how to call the Extract Image API. It includes setting the content type and authorization headers, and passing a JSON request body with a URL input method, sample image URL, and a descriptive prompt.
+
+```curl
+curl -X POST https://app.dumplingai.com/api/v1/extract-image \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_API_KEY" \
+-d '{
+  "inputMethod": "url",
+  "images": ["https://example.com/sample-image.jpg"],
+  "prompt": "Describe the main elements in this image.",
+  "jsonMode": false
+}'
+```
+
+--------------------------------
+
+### Example cURL Request for Search News API
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/search-news
+
+This snippet provides a practical example of how to make a POST request to the DumplingAI Search News API using the cURL command-line tool. It demonstrates setting the Content-Type and Authorization headers, and passing a JSON request body with a query, country, and language.
+
+```curl
+curl -X POST https://app.dumplingai.com/api/v1/search-news \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_API_KEY" \
+-d '{
+  "query": "climate change",
+  "country": "US",
+  "language": "en"
+}'
+```
+
+--------------------------------
+
+### DumplingAI Get Google Reviews API Success Response (200) Schema
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/get-google-reviews
+
+JSON schema for a successful response (HTTP 200) from the Get Google Reviews API. It contains detailed business information and a list of individual review objects.
+
+```APIDOC
+{
+  "keyword": "string", // If keyword search was used
+  "type": "string",
+  "se_domain": "string",
+  "location_code": "number",
+  "language_code": "string",
+  "check_url": "string",
+  "datetime": "string",
+  "title": "string",
+  "sub_title": "string",
+  "rating": {
+    "rating_type": "string",
+    "value": "number",
+    "votes_count": "number",
+    "rating_max": "number"
+  },
+  "feature_id": "string",
+  "place_id": "string",
+  "cid": "string",
+  "reviews_count": "number",
+  "items_count": "number",
+  "items": [
+    {
+      "type": "string",
+      "rank_group": "number",
+      "rank_absolute": "number",
+      "position": "string",
+      "review_text": "string",
+      "original_review_text": "string",
+      "time_ago": "string",
+      "timestamp": "string",
+      "rating": {
+        "rating_type": "string",
+        "value": "number",
+        "votes_count": "number",
+        "rating_max": "number"
+      },
+      "reviews_count": "number",
+      "photos_count": "number",
+      "local_guide": "boolean",
+      "profile_name": "string",
+      "profile_url": "string",
+      "review_url": "string",
+      "profile_image_url": "string",
+      "owner_answer": "string",
+      "original_owner_answer": "string",
+      "owner_time_ago": "string",
+      "owner_timestamp": "string",
+      "review_id": "string",
+      "images": [
+        {
+          "type": "string",
+          "alt": "string",
+          "url": "string",
+          "image_url": "string"
+        }
+      ]
+    }
+  ]
+}
+```
+
+--------------------------------
+
+### Example AI Assistant JSON Response
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/generate-agent-completion
+
+This JSON object illustrates a typical response from an AI assistant, providing the generated text, a detailed breakdown of the internal steps taken, token usage statistics for both prompt and completion, and a unique thread identifier for tracking the conversation.
+
+```json
+{
+  "parsedJson": null,
+  "text": "Certainly! I'd be happy to help you with a task. What kind of task do you need assistance with?",
+  "stepsTaken": 1,
+  "steps": [
+    {
+      "text": "Certainly! I'd be happy to help you with a task. What kind of task do you need assistance with?",
+      "toolCalls": [],
+      "toolResults": [],
+      "finishReason": "stop",
+      "usage": {
+        "promptTokens": 20,
+        "completionTokens": 15,
+        "totalTokens": 35
+      }
+    }
+  ],
+  "tokenUsage": {
+    "promptTokens": 20,
+    "completionTokens": 15,
+    "totalTokens": 35
+  },
+  "creditUsage": 1,
+  "threadId": "thread_123456"
+}
+```
+
+--------------------------------
+
+### Get Supported Video Formats Endpoint
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/extract-video
+
+The HTTP GET endpoint to retrieve a list of video formats supported by the Extract Video API.
+
+```HTTP
+GET /api/v1/extract-video
+```
+
+--------------------------------
+
+### DumplingAI Run Python Code API Request Body Schema
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/run-python-code
+
+Defines the JSON structure for the request payload, including optional commands for package installation, the required Python code, and an option to parse output as JSON.
+
+```APIDOC
+{
+  "commands": "string", // Optional. Install pip packages before code execution e.g. pip install pandas
+  "code": "string", // Required. The Python code to be executed
+  "parseJson": boolean // Optional. Whether to parse stdout/stderr as JSON
+}
+```
+
+--------------------------------
+
+### Example cURL Request for Search Maps API
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/search-maps
+
+A practical example demonstrating how to make a POST request to the Search Maps API using cURL. This snippet includes necessary headers for content type and authorization, along with a sample JSON request body to search for coffee shops in New York.
+
+```curl
+curl -X POST https://app.dumplingai.com/api/v1/search-maps \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_API_KEY" \
+-d '{
+  "query": "coffee shops in New York",
+  "language": "en"
+}'
+```
+
+--------------------------------
+
+### API Reference for Get TikTok Profile Endpoint
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/get-tiktok-profile
+
+Detailed specification of the 'Get TikTok Profile' API endpoint, including its method, URL, required headers, request body parameters, and possible success and error responses. Also covers credit cost and rate limiting.
+
+```APIDOC
+API Endpoint: /api/v1/get-tiktok-profile
+Method: POST
+Description: Retrieves the profile information for a given TikTok handle.
+
+Request:
+  URL: https://app.dumplingai.com/api/v1/get-tiktok-profile
+  Headers:
+    Content-Type: application/json
+    Authorization: Bearer <apiKey>
+  Body:
+    handle: string (The TikTok handle to retrieve profile for)
+
+Response:
+  Success (200 OK):
+    Description: Returns the TikTok profile data.
+    Body:
+      // The exact schema is not provided, but `itemList` is mentioned as a key part.
+      // Example inferred structure:
+      // {
+      //   "status": "success",
+      //   "data": {
+      //     "profileInfo": { ... },
+      //     "itemList": [ ... ] // Content may vary, can be empty
+      //   }
+      // }
+  Error Responses:
+    400 Bad Request: Invalid request parameters.
+    401 Unauthorized: Missing or invalid API key.
+    403 Forbidden: Insufficient permissions or rate limit exceeded.
+    404 Not Found: TikTok profile not found.
+    500 Internal Server Error: An unexpected error occurred on the server.
+    502 Bad Gateway: The server received an invalid response from an upstream server.
+    503 Service Unavailable: The server is currently unable to handle the request due to a temporary overload or scheduled maintenance.
+
+Notes:
+  - The `itemList` in the response may vary in content and structure depending on the profile and the data provided by the upstream service. It might be empty for some profiles.
+
+Credit Cost: 2 credits per successful request.
+Rate Limiting: Subject to standard API rate limits. Monitor `X-RateLimit-Limit` and `X-RateLimit-Remaining` headers in the response.
+```
+
+--------------------------------
+
+### DumplingAI Get Google Reviews API Unauthorized Response (401) Schema
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/get-google-reviews
+
+JSON schema for an unauthorized error response (HTTP 401) from the Get Google Reviews API. This occurs if the API key is invalid or missing from the Authorization header.
+
+```APIDOC
+{
+  "error": "Invalid or missing Authorization header"
+}
+```
+
+--------------------------------
+
+### Doc to Text API Example Success Response
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/doc-to-text
+
+An illustrative JSON response showing the `text` field with extracted content from a document.
+
+```APIDOC
+{
+  "text": "This is the extracted text content from the document..."
+}
+```
+
+--------------------------------
+
+### Get Autocomplete Unauthorized Response (401) Schema
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/get-autocomplete
+
+Defines the error structure returned when the API key is invalid or missing from the Authorization header.
+
+```APIDOC
+{
+  "error": "Invalid or missing Authorization header"
+}
+```
+
+--------------------------------
+
+### Get Autocomplete Request Body Schema
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/get-autocomplete
+
+Describes the JSON structure required for the request body, including required and optional parameters for refining autocomplete suggestions based on query, location, country, and language.
+
+```APIDOC
+{
+  "query": "string", // Required. The base query for which autocomplete suggestions are needed.
+  "location": "string", // Optional. Location for contextualizing autocomplete suggestions.
+  "country": "string", // Optional. Country code to refine suggestions. e.g., "US", "AU".
+  "language": "string" // Optional. Language code for the suggestions. e.g., "en".
+}
+```
+
+--------------------------------
+
+### Example cURL Request for Image Editing with FLUX.1-kontext-pro
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/generate-ai-image
+
+Illustrates a cURL POST request for image editing using the 'FLUX.1-kontext-pro' model. It includes an input image URL and a prompt to modify the image, maintaining the original aspect ratio.
+
+```curl
+curl -X POST https://app.dumplingai.com/api/v1/generate-ai-image \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_API_KEY" \
+-d '{
+  "model": "FLUX.1-kontext-pro",
+  "input": {
+    "prompt": "Change the background to a tropical beach while keeping the person in the exact same position",
+    "input_image": "https://example.com/portrait.jpg",
+    "aspect_ratio": "match_input_image"
+  }
+}'
+```
+
+--------------------------------
+
+### Example of Successful API Response
+
+Source: https://docs.dumplingai.com/api-reference/introduction
+
+This JSON snippet illustrates the typical structure of a successful response from the DumplingAI API. Successful responses will include a 'data' field containing the requested information and a 'status' field set to 'success'.
+
+```JSON
+{
+  "data": { ... },
+  "status": "success"
+}
+```
+
+--------------------------------
+
+### Get Autocomplete Bad Request Response (400) Schema
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/get-autocomplete
+
+Defines the error structure returned when the request is invalid, typically due to missing or malformed parameters.
+
+```APIDOC
+{
+  "error": "Error message describing the issue"
+}
+```
+
+--------------------------------
+
+### Example cURL Request for Text-to-Image Generation
+
+Source: https://docs.dumplingai.com/api-reference/endpoint/generate-ai-image
+
+Demonstrates how to make a cURL POST request to the DumplingAI API for text-to-image generation. It specifies the API endpoint, content type, authorization header, and a JSON payload for the 'FLUX.1-schnell' model.
+
+```curl
+curl -X POST https://app.dumplingai.com/api/v1/generate-ai-image \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_API_KEY" \
+-d '{
+  "model": "FLUX.1-schnell",
+  "input": {
+    "prompt": "A serene landscape with mountains and a lake",
+    "num_outputs": 1,
+    "aspect_ratio": "16:9"
+  }
+}'
+```
+
+--------------------------------
+
+### Maintaining Conversation Context with DumplingAI Agent
+
+Source: https://docs.dumplingai.com/guides/tutorials/ai-agents
+
+This example illustrates how to maintain a multi-turn conversation with a DumplingAI agent by utilizing the `threadId` returned from initial interactions. It demonstrates sending follow-up messages within the same conversation thread to ensure context is preserved across multiple exchanges, allowing for a coherent and continuous dialogue.
+
+```Node.js
+async function conversationDemo(agentId) {
+  // First message
+  const response1 = await chatWithAgent(agentId, 'What are the main features of your analytics dashboard?');
+  const threadId = response1.threadId;
+
+  // Continue the conversation
+  const response2 = await chatWithAgent(agentId, 'How can I customize the charts?', threadId);
+
+  // Ask a follow-up question
+  const response3 = await chatWithAgent(agentId, 'Can I export the data?', threadId);
+
+  return {
+    threadId,
+    responses: [
+      response1.text,
+      response2.text,
+      response3.text
+    ]
+  };
+}
+
+// Run a multi-turn conversation
+const conversation = await conversationDemo(agentId);
+console.log('Conversation Thread ID:', conversation.threadId);
+console.log('Conversation History:', conversation.responses);
+```
+
+--------------------------------
+
+### Define System Prompt for E-commerce Product Recommendation Agent
+
+Source: https://docs.dumplingai.com/guides/tutorials/ai-agents
+
+Outlines a system prompt for an AI agent specializing in e-commerce product recommendations. It specifies how the agent should interact with customers, including asking about preferences, providing specific recommendations with explanations, listing pros and cons, and suggesting complementary products.
+
+```Plain Text
+You are a knowledgeable e-commerce assistant specializing in helping customers find the right products.
+
+When recommending products:
+1. Ask about the customer's needs, preferences, and budget
+2. Provide 2-3 specific product recommendations with brief explanations
+3. Include pros and cons for each recommendation
+4. Suggest accessories or complementary products when relevant
+5. Always remain neutral and objective in your recommendations
+```
