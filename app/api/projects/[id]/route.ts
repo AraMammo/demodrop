@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 import { getProject } from '@/lib/db';
 
 export async function GET(
@@ -6,14 +7,35 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Auth check - ensure user is logged in
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const projectId = params.id;
-    
+
     const project = await getProject(projectId);
 
     if (!project) {
       return NextResponse.json(
         { error: 'Project not found' },
         { status: 404 }
+      );
+    }
+
+    // Verify user owns this project
+    if (project.user_id !== user.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized - you do not own this project' },
+        { status: 403 }
       );
     }
 

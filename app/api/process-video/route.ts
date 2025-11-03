@@ -11,8 +11,12 @@ import { createProductionPrompt } from '@/lib/prompt-orchestrator';
 let openai: OpenAI | null = null;
 function getOpenAI() {
   if (!openai) {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey || apiKey === 'placeholder') {
+      throw new Error('OPENAI_API_KEY environment variable is not set or is using placeholder value');
+    }
     openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY || 'placeholder',
+      apiKey,
     });
   }
   return openai;

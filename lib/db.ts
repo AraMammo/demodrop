@@ -108,16 +108,32 @@ export async function getUserProjects(userId: string, limit = 20) {
 // User Management Functions
 
 export async function getUser(userId: string): Promise<User | null> {
-  // For now, return a default user structure
-  // In production, you'd query a users table or use Supabase auth metadata
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", userId)
+    .single()
+
+  if (error) {
+    if (error.code === "PGRST116") return null // Not found
+    throw error
+  }
+
+  if (!data) return null
+
   return {
-    id: userId,
-    email: "",
-    planType: "free",
-    videosUsed: 0,
-    videosLimit: PLAN_LIMITS.free,
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    id: data.id,
+    email: data.email,
+    planType: data.plan_type || "free",
+    videosUsed: data.videos_used || 0,
+    videosLimit: data.videos_limit || PLAN_LIMITS.free,
+    stripeCustomerId: data.stripe_customer_id,
+    stripeSubscriptionId: data.stripe_subscription_id,
+    subscriptionStatus: data.subscription_status,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
   }
 }
 
@@ -126,17 +142,44 @@ export async function createUser(user: {
   email: string
   planType?: "free" | "pro" | "enterprise"
 }): Promise<User> {
-  // User creation is handled by Supabase auth
-  // This function is kept for compatibility
+  const supabase = await createClient()
   const planType = user.planType || "free"
+  const now = Date.now()
+
+  const { data, error } = await supabase
+    .from("users")
+    .insert({
+      id: user.id,
+      email: user.email,
+      plan_type: planType,
+      videos_used: 0,
+      videos_limit: PLAN_LIMITS[planType],
+      created_at: now,
+      updated_at: now,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    // If user already exists, return the existing user
+    if (error.code === "23505") { // Unique violation
+      const existingUser = await getUser(user.id)
+      if (existingUser) return existingUser
+    }
+    throw error
+  }
+
   return {
-    id: user.id,
-    email: user.email,
-    planType,
-    videosUsed: 0,
-    videosLimit: PLAN_LIMITS[planType],
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    id: data.id,
+    email: data.email,
+    planType: data.plan_type,
+    videosUsed: data.videos_used,
+    videosLimit: data.videos_limit,
+    stripeCustomerId: data.stripe_customer_id,
+    stripeSubscriptionId: data.stripe_subscription_id,
+    subscriptionStatus: data.subscription_status,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
   }
 }
 
@@ -161,9 +204,34 @@ export async function checkUserQuota(userId: string): Promise<{
 }
 
 export async function incrementUserVideoCount(userId: string) {
-  // This would update user metadata in Supabase
-  // For now, it's a no-op since we're using free tier
-  return
+  const supabase = await createClient()
+
+  // Get current user to check if they exist
+  const user = await getUser(userId)
+
+  if (!user) {
+    console.error(`[incrementUserVideoCount] User ${userId} not found`)
+    return
+  }
+
+  // Increment videos_used counter
+  const { data, error } = await supabase
+    .from("users")
+    .update({
+      videos_used: user.videosUsed + 1,
+      updated_at: Date.now(),
+    })
+    .eq("id", userId)
+    .select()
+    .single()
+
+  if (error) {
+    console.error(`[incrementUserVideoCount] Failed to increment for user ${userId}:`, error)
+    throw error
+  }
+
+  console.log(`[incrementUserVideoCount] User ${userId} now has ${data.videos_used} videos`)
+  return data
 }
 
 export async function updateUserSubscription(
@@ -175,14 +243,38 @@ export async function updateUserSubscription(
     subscriptionStatus?: string
   },
 ) {
-  // This would update user metadata in Supabase
-  // For now, return a mock response
-  return {
-    id: userId,
-    plan_type: updates.planType || "free",
-    stripe_customer_id: updates.stripeCustomerId,
-    stripe_subscription_id: updates.stripeSubscriptionId,
-    subscription_status: updates.subscriptionStatus,
+  const supabase = await createClient()
+
+  const updateData: any = {
     updated_at: Date.now(),
   }
+
+  if (updates.planType !== undefined) {
+    updateData.plan_type = updates.planType
+    updateData.videos_limit = PLAN_LIMITS[updates.planType]
+  }
+  if (updates.stripeCustomerId !== undefined) {
+    updateData.stripe_customer_id = updates.stripeCustomerId
+  }
+  if (updates.stripeSubscriptionId !== undefined) {
+    updateData.stripe_subscription_id = updates.stripeSubscriptionId
+  }
+  if (updates.subscriptionStatus !== undefined) {
+    updateData.subscription_status = updates.subscriptionStatus
+  }
+
+  const { data, error } = await supabase
+    .from("users")
+    .update(updateData)
+    .eq("id", userId)
+    .select()
+    .single()
+
+  if (error) {
+    console.error(`[updateUserSubscription] Failed to update user ${userId}:`, error)
+    throw error
+  }
+
+  console.log(`[updateUserSubscription] Updated user ${userId} to plan ${data.plan_type}`)
+  return data
 }
