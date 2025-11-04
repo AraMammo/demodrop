@@ -61,11 +61,14 @@ const PHASES: Record<string, PhaseInfo> = {
 
 export function VideoGenerator() {
   const [websiteUrl, setWebsiteUrl] = useState("")
+  const [youtubeUrl, setYoutubeUrl] = useState("")
+  const [instagramUrl, setInstagramUrl] = useState("")
   const [stylePreset, setStylePreset] = useState("product-demo")
   const [videoStyle, setVideoStyle] = useState("modern")
   const [customInstructions, setCustomInstructions] = useState("")
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [additionalMedia, setAdditionalMedia] = useState<File[]>([])
+  const [voiceNote, setVoiceNote] = useState<File | null>(null)
   const [state, setState] = useState<GenerationState>({
     status: "idle",
     progress: 0,
@@ -154,10 +157,13 @@ export function VideoGenerator() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           websiteUrl,
+          youtubeUrl: youtubeUrl || undefined,
+          instagramUrl: instagramUrl || undefined,
           stylePreset,
           videoStyle,
           customInstructions: enhancedInstructions,
           hasCustomLogo: !!logoFile,
+          hasVoiceNote: !!voiceNote,
         }),
       })
 
@@ -391,6 +397,79 @@ export function VideoGenerator() {
                   disabled={state.status === "generating"}
                   className="h-12"
                 />
+              </div>
+
+              {/* Multi-Source Context Inputs */}
+              <div className="space-y-4 p-4 border rounded-lg bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <span className="text-lg">🎥</span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-semibold text-foreground mb-1">
+                      Add Context for Better Results (Optional)
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      Add YouTube demos, social media, or voice briefings to help AI understand your product better
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="youtube-url" className="text-xs font-medium flex items-center gap-2">
+                      <span>📺</span>
+                      YouTube Demo URL
+                    </Label>
+                    <Input
+                      id="youtube-url"
+                      type="url"
+                      placeholder="https://youtube.com/watch?v=..."
+                      value={youtubeUrl}
+                      onChange={(e) => setYoutubeUrl(e.target.value)}
+                      disabled={state.status === "generating"}
+                      className="h-10"
+                    />
+                    <p className="text-xs text-muted-foreground pl-5">
+                      Paste a product demo or explainer video
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="instagram-url" className="text-xs font-medium flex items-center gap-2">
+                      <span>📷</span>
+                      Instagram Profile
+                    </Label>
+                    <Input
+                      id="instagram-url"
+                      type="text"
+                      placeholder="@yourcompany or https://instagram.com/yourcompany"
+                      value={instagramUrl}
+                      onChange={(e) => setInstagramUrl(e.target.value)}
+                      disabled={state.status === "generating"}
+                      className="h-10"
+                    />
+                    <p className="text-xs text-muted-foreground pl-5">
+                      Get visual brand identity from your Instagram
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium flex items-center gap-2">
+                      <span>🎤</span>
+                      Voice Briefing
+                    </Label>
+                    <FileUpload
+                      label=""
+                      description="Record a quick voice note with specific requirements (MP3, WAV, M4A)"
+                      accept="audio/*"
+                      maxSizeMB={10}
+                      onFileSelect={setVoiceNote}
+                      currentFile={voiceNote}
+                      disabled={state.status === "generating"}
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-2">

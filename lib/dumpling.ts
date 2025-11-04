@@ -1,5 +1,6 @@
 import type { ProductUnderstanding } from './product-analyzer';
 import type { ParsedContent } from './content-parser';
+import type { EnrichedContextData } from './multi-source-scraper';
 
 interface WebsiteData {
   title: string;
@@ -18,6 +19,8 @@ interface WebsiteData {
   // NEW: Rich understanding from AI analysis
   productUnderstanding?: ProductUnderstanding;
   parsedContent?: ParsedContent;
+  // NEW: Enriched context from additional sources
+  enrichedContext?: EnrichedContextData;
 }
 
 interface DumplingAIResponse {
@@ -27,7 +30,10 @@ interface DumplingAIResponse {
   metadata?: Record<string, any>;
 }
 
-export async function scrapeWebsite(url: string): Promise<WebsiteData> {
+export async function scrapeWebsite(
+  url: string,
+  enrichedContext?: EnrichedContextData
+): Promise<WebsiteData> {
   const apiKey = process.env.DUMPLING_API;
 
   if (!apiKey) {
@@ -126,9 +132,18 @@ export async function scrapeWebsite(url: string): Promise<WebsiteData> {
       },
       productUnderstanding,
       parsedContent,
+      enrichedContext,
     };
 
-    console.log('[dumpling] ✅ Complete extraction with AI understanding');
+    if (enrichedContext) {
+      const sources = [];
+      if (enrichedContext.videoDemo) sources.push('YouTube');
+      if (enrichedContext.socialVisuals) sources.push('Instagram');
+      if (enrichedContext.customBrief) sources.push('Voice Note');
+      console.log(`[dumpling] ✅ Complete extraction with AI understanding + ${sources.join(', ')}`);
+    } else {
+      console.log('[dumpling] ✅ Complete extraction with AI understanding');
+    }
 
     return result;
   } catch (error) {

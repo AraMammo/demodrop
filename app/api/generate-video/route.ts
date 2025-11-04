@@ -41,10 +41,27 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { websiteUrl, stylePreset, videoStyle, customInstructions } = body
+    const {
+      websiteUrl,
+      stylePreset,
+      videoStyle,
+      customInstructions,
+      youtubeUrl,
+      instagramUrl,
+      voiceNoteUrl // For future voice note upload support
+    } = body
 
     if (!websiteUrl) {
       return NextResponse.json({ error: "Website URL is required" }, { status: 400 })
+    }
+
+    // Log multi-source inputs
+    if (youtubeUrl || instagramUrl || voiceNoteUrl) {
+      const sources = []
+      if (youtubeUrl) sources.push('YouTube')
+      if (instagramUrl) sources.push('Instagram')
+      if (voiceNoteUrl) sources.push('Voice Note')
+      console.log(`[generate-video] Multi-source enrichment: ${sources.join(', ')}`)
     }
 
     if (!STYLE_PRESETS[stylePreset]) {
@@ -88,6 +105,9 @@ export async function POST(req: NextRequest) {
           stylePreset,
           videoStyle,
           customInstructions,
+          youtubeUrl,
+          instagramUrl,
+          voiceNoteUrl,
         }),
       })
 

@@ -3,13 +3,18 @@
 
 import OpenAI from 'openai';
 import type { ParsedContent } from './content-parser';
+import type { EnrichedContextData } from './multi-source-scraper';
 
 // Lazy initialization
 let openai: OpenAI | null = null;
 function getOpenAI() {
   if (!openai) {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey || apiKey === 'placeholder') {
+      throw new Error('OPENAI_API_KEY environment variable is not set or is using placeholder value');
+    }
     openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY || 'placeholder',
+      apiKey,
     });
   }
   return openai;
@@ -60,12 +65,21 @@ export async function analyzeProduct(
     title: string;
     url: string;
     metaDescription?: string;
-  }
+  },
+  enrichedContext?: EnrichedContextData
 ): Promise<ProductUnderstanding> {
 
-  console.log('[product-analyzer] Starting deep analysis for:', metadata.title);
+  if (enrichedContext) {
+    const sources = [];
+    if (enrichedContext.videoDemo) sources.push('YouTube demo');
+    if (enrichedContext.socialVisuals) sources.push('Instagram');
+    if (enrichedContext.customBrief) sources.push('voice briefing');
+    console.log(`[product-analyzer] Starting ENHANCED analysis for: ${metadata.title} (with ${sources.join(', ')})`);
+  } else {
+    console.log('[product-analyzer] Starting deep analysis for:', metadata.title);
+  }
 
-  const analysisPrompt = buildAnalysisPrompt(parsedContent, metadata);
+  const analysisPrompt = buildAnalysisPrompt(parsedContent, metadata, enrichedContext);
 
   try {
     const response = await getOpenAI().chat.completions.create({
@@ -114,8 +128,12 @@ Return a JSON object with your analysis.`
   }
 }
 
-function buildAnalysisPrompt(parsedContent: ParsedContent, metadata: any): string {
-  return `Analyze this product and tell me EXACTLY what it does:
+function buildAnalysisPrompt(
+  parsedContent: ParsedContent,
+  metadata: any,
+  enrichedContext?: EnrichedContextData
+): string {
+  let prompt = `Analyze this product and tell me EXACTLY what it does:
 
 **Product Name:** ${metadata.title}
 **Meta Description:** ${metadata.metaDescription || 'Not provided'}
@@ -142,9 +160,42 @@ ${parsedContent.howItWorks.workflow}
 ${parsedContent.useCases.map(uc => `- ${uc.scenario}: ${uc.description}`).join('\n')}
 
 **Benefits:**
-${parsedContent.benefits.join('\n')}
+${parsedContent.benefits.join('\n')}`;
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // Add enriched context if available
+  if (enrichedContext) {
+    prompt += `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎬 ADDITIONAL CONTEXT (Use this for better understanding!)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+
+    if (enrichedContext.videoDemo) {
+      prompt += `\n\n**📺 YOUTUBE DEMO TRANSCRIPT:**
+Video Title: ${enrichedContext.videoDemo.videoTitle}
+Transcript: ${enrichedContext.videoDemo.transcript.substring(0, 3000)}${enrichedContext.videoDemo.transcript.length > 3000 ? '...' : ''}
+
+This shows the ACTUAL product in action. Use this to understand what the product REALLY does.`;
+    }
+
+    if (enrichedContext.socialVisuals) {
+      prompt += `\n\n**📷 INSTAGRAM INSIGHTS:**
+Bio: ${enrichedContext.socialVisuals.bio}
+Recent Posts:
+${enrichedContext.socialVisuals.posts.slice(0, 5).map((p, i) => `${i + 1}. ${p.caption}`).join('\n')}
+
+This shows the brand's visual identity and tone.`;
+    }
+
+    if (enrichedContext.customBrief) {
+      prompt += `\n\n**🎤 VOICE BRIEFING FROM USER:**
+${enrichedContext.customBrief.transcript}
+
+This is the user's custom requirements. Pay SPECIAL attention to this - these are direct instructions.`;
+    }
+
+    prompt += `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+  }
+
+  prompt += `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Based on ALL this content, provide a JSON response with this structure:
 
@@ -188,6 +239,8 @@ Based on ALL this content, provide a JSON response with this structure:
 }
 
 Be SPECIFIC. Don't say "user interacts with interface" - say "user taps record button, speaks for 30 seconds, watches AI generate formatted blog post with images."`;
+
+  return prompt;
 }
 
 function validateAndStructure(

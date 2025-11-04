@@ -6,6 +6,7 @@ import { scrapeWebsite } from '@/lib/dumpling';
 import { updateProject, getProject, incrementUserVideoCount } from '@/lib/db';
 import { uploadVideoToStorage } from '@/lib/storage';
 import { createProductionPrompt } from '@/lib/prompt-orchestrator';
+import { scrapeAdditionalSources, type EnrichedContextData } from '@/lib/multi-source-scraper';
 
 // Lazy initialization to avoid build-time errors
 let openai: OpenAI | null = null;
@@ -30,21 +31,66 @@ export async function POST(req: NextRequest) {
     console.log('[process-video] Request received');
     const body = await req.json();
     projectId = body.projectId;
-    const { websiteUrl, stylePreset, videoStyle, customInstructions } = body;
+    const {
+      websiteUrl,
+      stylePreset,
+      videoStyle,
+      customInstructions,
+      youtubeUrl,
+      instagramUrl,
+      voiceNoteUrl
+    } = body;
 
     console.log('[process-video] Processing project:', projectId, 'URL:', websiteUrl);
+
+    // Log multi-source inputs if present
+    if (youtubeUrl || instagramUrl || voiceNoteUrl) {
+      const sources = [];
+      if (youtubeUrl) sources.push('YouTube');
+      if (instagramUrl) sources.push('Instagram');
+      if (voiceNoteUrl) sources.push('Voice Note');
+      console.log(`[process-video] Multi-source enrichment enabled: ${sources.join(', ')}`);
+    }
 
     if (!projectId) {
       return NextResponse.json({ error: 'Missing projectId' }, { status: 400 });
     }
 
-    // Phase 1: Scrape website
-    console.log('[process-video] Phase 1: Starting website scrape');
+    // Phase 1: Scrape website + additional sources
+    console.log('[process-video] Phase 1: Starting website scrape + multi-source enrichment');
     await updateProject(projectId, { status: 'scraping', progress: 10 });
 
+    // Phase 1a: Scrape additional sources if provided (YouTube, Instagram, Voice Note)
+    let enrichedContext: EnrichedContextData | undefined = undefined;
+    if (youtubeUrl || instagramUrl || voiceNoteUrl) {
+      try {
+        console.log('[process-video] Scraping additional sources...');
+        enrichedContext = await scrapeAdditionalSources({
+          youtubeUrl,
+          instagramUrl,
+          voiceNoteUrl,
+        });
+
+        const sourcesFound = [];
+        if (enrichedContext.videoDemo) sourcesFound.push('YouTube transcript');
+        if (enrichedContext.socialVisuals) sourcesFound.push('Instagram profile');
+        if (enrichedContext.customBrief) sourcesFound.push('Voice note transcript');
+
+        if (sourcesFound.length > 0) {
+          console.log(`[process-video] ✅ Successfully enriched with: ${sourcesFound.join(', ')}`);
+        } else {
+          console.log('[process-video] ⚠️ No additional sources were successfully scraped');
+        }
+      } catch (enrichmentError) {
+        console.error('[process-video] Multi-source enrichment failed (continuing with website only):', enrichmentError);
+        // Continue with website scraping even if enrichment fails
+      }
+    }
+
+    // Phase 1b: Scrape website with enriched context
     let websiteData;
     try {
-      websiteData = await scrapeWebsite(websiteUrl);
+      websiteData = await scrapeWebsite(websiteUrl, enrichedContext);
       console.log('[process-video] Website scraped successfully:', {
         title: websiteData.title,
         heroText: websiteData.heroText?.substring(0, 100),
